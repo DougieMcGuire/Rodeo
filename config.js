@@ -2,20 +2,24 @@
 const SUPABASE_URL = 'https://unxiyhasvyiymgyqgzmd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueGl5aGFzdnlpeW1neXFnem1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTE3NjUsImV4cCI6MjA4NjMyNzc2NX0.QrLILtXwlAdcabjD-BCaPU4I26oTGDvW_EWdqkKja1I';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize Supabase client
+let supabase;
+if (window.supabase) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
 
 // Generate unique player ID
-function generatePlayerId() {
+window.generatePlayerId = function() {
     return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
 // Generate room code
-function generateRoomCode() {
+window.generateRoomCode = function() {
     return Math.random().toString(36).substr(2, 6).toUpperCase();
 }
 
 // Get current player data from localStorage
-function getCurrentPlayer() {
+window.getCurrentPlayer = function() {
     return {
         playerId: localStorage.getItem('playerId'),
         name: localStorage.getItem('playerName'),
@@ -24,7 +28,7 @@ function getCurrentPlayer() {
 }
 
 // Save player data to localStorage
-function savePlayerData(playerId, name, avatarUrl) {
+window.savePlayerData = function(playerId, name, avatarUrl) {
     localStorage.setItem('playerId', playerId);
     localStorage.setItem('playerName', name);
     localStorage.setItem('avatarUrl', avatarUrl);
