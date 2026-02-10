@@ -1,26 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rodeo</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rodeo - Party Games</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="container">
+        <div class="home-screen">
+            <h1 class="app-title">🤠 RODEO</h1>
+            <p class="tagline">Party games with friends</p>
+            
+            <div class="setup-section">
+                <div class="input-group">
+                    <label for="playerName">Your Name</label>
+                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+                </div>
 
-  <div class="container">
-    <h1>Rodeo</h1>
+                <div class="input-group">
+                    <label for="avatarUpload">Profile Picture</label>
+                    <div class="avatar-upload-container">
+                        <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                        <button type="button" class="avatar-upload-btn" id="avatarUploadBtn">
+                            <span id="uploadBtnText">Choose Photo</span>
+                        </button>
+                        <div id="avatarPreview" class="avatar-preview" style="display: none;">
+                            <img id="previewImg" src="" alt="Avatar preview">
+                        </div>
+                    </div>
+                </div>
 
-    <input id="nameInput" placeholder="Your name" />
-    <input id="avatarInput" placeholder="Profile picture URL" />
+                <button class="btn btn-primary" id="hostGameBtn">Host Game</button>
 
-    <button onclick="hostRoom()">Host</button>
+                <div class="divider">
+                    <span>OR</span>
+                </div>
 
-    <input id="roomInput" placeholder="Enter room code" />
-    <button onclick="joinRoom()">Join</button>
-  </div>
+                <div class="input-group">
+                    <label for="roomCode">Room Code</label>
+                    <input type="text" id="roomCode" placeholder="Enter 6-digit code" maxlength="6">
+                </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="main.js"></script>
+                <button class="btn btn-secondary" id="joinGameBtn">Join Game</button>
+            </div>
+
+            <div id="loadingMessage" class="loading-message" style="display: none;">
+                <div class="spinner"></div>
+                <p id="loadingText">Setting up...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
