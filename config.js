@@ -10,9 +10,9 @@ window.generatePlayerId = function() {
     return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-// Generate room code
+// Generate room code (numbers only)
 window.generateRoomCode = function() {
-    return Math.random().toString(36).substr(2, 6).toUpperCase();
+    return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 // Get current player data from localStorage
