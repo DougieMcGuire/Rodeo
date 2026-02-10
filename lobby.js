@@ -20,12 +20,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     const startGameBtn = document.getElementById('startGameBtn');
     const leaveBtn = document.getElementById('leaveBtn');
     const waitingMessage = document.getElementById('waitingMessage');
+    const showQrBtn = document.getElementById('showQrBtn');
+    const qrModal = document.getElementById('qrModal');
+    const closeQrBtn = document.getElementById('closeQrBtn');
+    const qrCodeDiv = document.getElementById('qrCode');
 
     let isHost = false;
     let players = [];
 
-    // Display room code
-    roomCodeDisplay.textContent = roomCode;
+    // Display room code formatted
+    roomCodeDisplay.textContent = roomCode.slice(0, 3) + ' ' + roomCode.slice(3);
+
+    // QR Code functionality
+    showQrBtn.addEventListener('click', () => {
+        qrModal.style.display = 'flex';
+        // Clear previous QR code
+        qrCodeDiv.innerHTML = '';
+        // Generate new QR code with the join URL
+        const joinUrl = window.location.origin + window.location.pathname.replace('lobby.html', 'index.html') + '?join=' + roomCode;
+        new QRCode(qrCodeDiv, {
+            text: joinUrl,
+            width: 256,
+            height: 256,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    });
+
+    closeQrBtn.addEventListener('click', () => {
+        qrModal.style.display = 'none';
+    });
+
+    qrModal.addEventListener('click', (e) => {
+        if (e.target === qrModal) {
+            qrModal.style.display = 'none';
+        }
+    });
 
     // Load initial room data
     await loadRoomData();
