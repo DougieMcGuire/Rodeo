@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rodeo - Party Games</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="home-screen">
-            <h1 class="app-title">🤠 RODEO</h1>
+            <img src="assets/wordmark.png" alt="RODEO" class="wordmark" onerror="this.style.display='none'; document.querySelector('.app-title').style.display='block'">
+            <h1 class="app-title" style="display: none;">🤠 RODEO</h1>
             <p class="tagline">Party games with friends</p>
             
             <div class="setup-section">
@@ -39,7 +41,7 @@
 
                 <div class="input-group">
                     <label for="roomCode">Room Code</label>
-                    <input type="text" id="roomCode" placeholder="Enter 6-digit code" maxlength="6">
+                    <input type="text" id="roomCode" placeholder="123 456" maxlength="7" inputmode="numeric">
                 </div>
 
                 <button class="btn btn-secondary" id="joinGameBtn">Join Game</button>
