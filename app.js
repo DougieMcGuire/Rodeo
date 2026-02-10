@@ -14,10 +14,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingMessage = document.getElementById('loadingMessage');
     const loadingText = document.getElementById('loadingText');
 
-    // Load saved player name if exists
+    // Auto-format room code input
+    roomCodeInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\s/g, '').replace(/\D/g, ''); // Remove spaces and non-digits
+        if (value.length > 6) value = value.substr(0, 6);
+        if (value.length > 3) {
+            e.target.value = value.substr(0, 3) + ' ' + value.substr(3);
+        } else {
+            e.target.value = value;
+        }
+    });
+
+    // Check if coming from QR code
+    const urlParams = new URLSearchParams(window.location.search);
+    const joinCode = urlParams.get('join');
+    if (joinCode && joinCode.length === 6) {
+        roomCodeInput.value = joinCode.substr(0, 3) + ' ' + joinCode.substr(3);
+    }
+
+    // Load saved player data if exists
     const savedName = localStorage.getItem('playerName');
+    const savedAvatarUrl = localStorage.getItem('avatarUrl');
+    
     if (savedName) {
         playerNameInput.value = savedName;
+    }
+    
+    if (savedAvatarUrl) {
+        previewImg.src = savedAvatarUrl;
+        avatarPreview.style.display = 'flex';
+        uploadBtnText.textContent = 'Change Photo';
+        // Create a fake file object so user can still change
+        selectedFile = 'existing';
     }
 
     // Avatar upload
@@ -50,7 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!selectedFile) {
+        const savedAvatarUrl = localStorage.getItem('avatarUrl');
+        if (!selectedFile && !savedAvatarUrl) {
             alert('Please select a profile picture');
             return;
         }
@@ -62,9 +91,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const playerId = generatePlayerId();
             const roomCode = generateRoomCode();
 
-            // Upload avatar
-            loadingText.textContent = 'Uploading avatar...';
-            const avatarUrl = await uploadAvatar(playerId, selectedFile);
+            // Upload avatar if new file selected, otherwise use saved
+            let avatarUrl;
+            if (selectedFile && selectedFile !== 'existing') {
+                loadingText.textContent = 'Uploading avatar...';
+                avatarUrl = await uploadAvatar(playerId, selectedFile);
+            } else {
+                avatarUrl = savedAvatarUrl;
+            }
 
             // Save player data
             savePlayerData(playerId, name, avatarUrl);
@@ -109,14 +143,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Join game
     joinGameBtn.addEventListener('click', async () => {
         const name = playerNameInput.value.trim();
-        const roomCode = roomCodeInput.value.trim().toUpperCase();
+        const roomCode = roomCodeInput.value.trim().replace(/\s/g, '');
 
         if (!name) {
             alert('Please enter your name');
             return;
         }
 
-        if (!selectedFile) {
+        const savedAvatarUrl = localStorage.getItem('avatarUrl');
+        if (!selectedFile && !savedAvatarUrl) {
             alert('Please select a profile picture');
             return;
         }
@@ -143,9 +178,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Generate player ID
             const playerId = generatePlayerId();
 
-            // Upload avatar
-            loadingText.textContent = 'Uploading avatar...';
-            const avatarUrl = await uploadAvatar(playerId, selectedFile);
+            // Upload avatar if new file selected, otherwise use saved
+            let avatarUrl;
+            if (selectedFile && selectedFile !== 'existing') {
+                loadingText.textContent = 'Uploading avatar...';
+                avatarUrl = await uploadAvatar(playerId, selectedFile);
+            } else {
+                avatarUrl = savedAvatarUrl;
+            }
 
             // Save player data
             savePlayerData(playerId, name, avatarUrl);
