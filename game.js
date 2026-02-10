@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const submissionPhase = document.getElementById('submissionPhase');
     const gameplayPhase = document.getElementById('gameplayPhase');
     const submissionForm = document.getElementById('submissionForm');
-    const submitPromptsBtn = document.getElementById('submitPromptsBtn');
     const submittedCount = document.getElementById('submittedCount');
     const totalPlayers = document.getElementById('totalPlayers');
     const waitingForOthers = document.getElementById('waitingForOthers');
@@ -39,6 +38,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentPhase = 'submission';
     let currentSelectedPlayer = null;
     let allPrompts = [];
+    let isHost = false;
+    
+    // Card submission state
+    let currentCardIndex = 0;
+    let submissionCards = [];
+    let cardInputs = {};
 
     // Initialize
     await init();
@@ -47,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Get room state
         const { data: room } = await supabase
             .from('rooms')
-            .select('state')
+            .select('*')
             .eq('id', roomCode)
             .single();
 
@@ -57,12 +62,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         currentPhase = room.state;
+        isHost = room.host_id === currentPlayer.playerId;
 
         // Get all players
         const { data: playersData } = await supabase
             .from('players')
             .select('*')
-            .eq('room_id', roomCode);
+            .eq('room_id', roomCode)
+            .order('created_at', { ascending: true });
 
         players = playersData || [];
         totalPlayers.textContent = players.length;
@@ -95,77 +102,145 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // Generate submission form
+        // Generate submission cards (one card per prompt type per player)
         const otherPlayers = players.filter(p => p.player_id !== currentPlayer.playerId);
+        submissionCards = [];
         
-        submissionForm.innerHTML = '';
         otherPlayers.forEach(player => {
+            submissionCards.push({ player, type: 'dare' });
+            submissionCards.push({ player, type: 'truth' });
+        });
+
+        // Render cards
+        renderSubmissionCards();
+    }
+
+    function renderSubmissionCards() {
+        submissionForm.innerHTML = '';
+        
+        submissionCards.forEach((card, index) => {
             const playerDiv = document.createElement('div');
-            playerDiv.className = 'player-submission';
+            playerDiv.className = `player-submission ${index === currentCardIndex ? 'active' : index < currentCardIndex ? 'prev' : 'next'}`;
+            playerDiv.dataset.index = index;
+            
+            const typeLabel = card.type.charAt(0).toUpperCase() + card.type.slice(1);
+            const placeholder = `Write a ${card.type} for ${card.player.name}...`;
+            
             playerDiv.innerHTML = `
                 <div class="player-submission-header">
-                    <img src="${player.avatar_url}" alt="${player.name}" class="small-avatar">
-                    <h3>${player.name}</h3>
+                    <img src="${card.player.avatar_url}" alt="${card.player.name}" class="small-avatar">
+                    <h3>${card.player.name}</h3>
                 </div>
+                <div class="prompt-type-label">${typeLabel}</div>
                 <div class="prompt-inputs">
                     <textarea 
-                        id="truth-${player.player_id}" 
-                        placeholder="Write a truth for ${player.name}..."
-                        required
-                    ></textarea>
-                    <textarea 
-                        id="dare-${player.player_id}" 
-                        placeholder="Write a dare for ${player.name}..."
-                        required
+                        id="input-${index}" 
+                        placeholder="${placeholder}"
+                        data-player-id="${card.player.player_id}"
+                        data-type="${card.type}"
                     ></textarea>
                 </div>
             `;
+            
             submissionForm.appendChild(playerDiv);
+            
+            // Restore saved input
+            const savedValue = cardInputs[index];
+            if (savedValue) {
+                playerDiv.querySelector('textarea').value = savedValue;
+            }
         });
 
-        submitPromptsBtn.style.display = 'block';
+        renderCardNavigation();
     }
 
-    submitPromptsBtn.addEventListener('click', async () => {
-        const otherPlayers = players.filter(p => p.player_id !== currentPlayer.playerId);
-        const prompts = [];
+    function renderCardNavigation() {
+        // Remove old navigation if exists
+        const oldNav = document.querySelector('.card-navigation');
+        if (oldNav) oldNav.remove();
 
-        // Collect all inputs
-        for (const player of otherPlayers) {
-            const truthInput = document.getElementById(`truth-${player.player_id}`);
-            const dareInput = document.getElementById(`dare-${player.player_id}`);
+        const nav = document.createElement('div');
+        nav.className = 'card-navigation';
+        nav.innerHTML = `
+            <button class="card-nav-btn" id="prevCardBtn" ${currentCardIndex === 0 ? 'disabled' : ''}>← Previous</button>
+            <div class="card-progress">${currentCardIndex + 1} / ${submissionCards.length}</div>
+            <button class="card-nav-btn" id="nextCardBtn">${currentCardIndex === submissionCards.length - 1 ? 'Submit All' : 'Next →'}</button>
+        `;
+        
+        submissionForm.appendChild(nav);
 
-            const truth = truthInput.value.trim();
-            const dare = dareInput.value.trim();
+        // Add event listeners
+        document.getElementById('prevCardBtn').addEventListener('click', () => {
+            saveCurrentCard();
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                updateCardDisplay();
+            }
+        });
 
-            if (!truth || !dare) {
-                alert('Please fill in all truths and dares');
+        document.getElementById('nextCardBtn').addEventListener('click', async () => {
+            saveCurrentCard();
+            
+            // Validate current card
+            const currentTextarea = document.getElementById(`input-${currentCardIndex}`);
+            if (!currentTextarea.value.trim()) {
+                alert('Please fill in this prompt before continuing');
                 return;
             }
 
-            prompts.push({
-                room_id: roomCode,
-                from_player: currentPlayer.playerId,
-                to_player: player.player_id,
-                type: 'truth',
-                text: truth,
-                used: false
-            });
+            if (currentCardIndex === submissionCards.length - 1) {
+                // Submit all
+                await submitAllPrompts();
+            } else {
+                currentCardIndex++;
+                updateCardDisplay();
+            }
+        });
+    }
 
-            prompts.push({
-                room_id: roomCode,
-                from_player: currentPlayer.playerId,
-                to_player: player.player_id,
-                type: 'dare',
-                text: dare,
-                used: false
-            });
+    function saveCurrentCard() {
+        const textarea = document.getElementById(`input-${currentCardIndex}`);
+        if (textarea) {
+            cardInputs[currentCardIndex] = textarea.value;
+        }
+    }
+
+    function updateCardDisplay() {
+        document.querySelectorAll('.player-submission').forEach((card, index) => {
+            card.classList.remove('active', 'prev', 'next');
+            if (index === currentCardIndex) {
+                card.classList.add('active');
+            } else if (index < currentCardIndex) {
+                card.classList.add('prev');
+            } else {
+                card.classList.add('next');
+            }
+        });
+        
+        renderCardNavigation();
+    }
+
+    async function submitAllPrompts() {
+        // Validate all inputs
+        for (let i = 0; i < submissionCards.length; i++) {
+            if (!cardInputs[i] || !cardInputs[i].trim()) {
+                alert('Please fill in all prompts');
+                currentCardIndex = i;
+                updateCardDisplay();
+                return;
+            }
         }
 
-        try {
-            submitPromptsBtn.disabled = true;
-            submitPromptsBtn.textContent = 'Submitting...';
+        const prompts = submissionCards.map((card, index) => ({
+            room_id: roomCode,
+            from_player: currentPlayer.playerId,
+            to_player: card.player.player_id,
+            type: card.type,
+            text: cardInputs[index],
+            used: false
+        }));
 
+        try {
             // Insert prompts
             const { error: promptsError } = await supabase
                 .from('prompts')
@@ -187,14 +262,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error('Error submitting prompts:', error);
             alert('Failed to submit. Please try again.');
-            submitPromptsBtn.disabled = false;
-            submitPromptsBtn.textContent = 'Submit All';
         }
-    });
+    }
 
     function showWaitingForOthers() {
         submissionForm.style.display = 'none';
-        submitPromptsBtn.style.display = 'none';
         waitingForOthers.style.display = 'block';
         updateSubmissionCount();
     }
@@ -222,13 +294,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         allPrompts = promptsData || [];
 
-        // Show wheel
+        if (isHost) {
+            // Host controls the wheel
+            showWheelForHost();
+        } else {
+            // Other players wait
+            showWaitingForSpin();
+        }
+    }
+
+    function showWheelForHost() {
         wheelSection.style.display = 'block';
         selectionScreen.style.display = 'none';
         promptDisplay.style.display = 'none';
         gameOver.style.display = 'none';
-
+        spinWheelBtn.disabled = false;
         drawWheel();
+    }
+
+    function showWaitingForSpin() {
+        wheelSection.style.display = 'none';
+        selectionScreen.style.display = 'block';
+        promptDisplay.style.display = 'none';
+        gameOver.style.display = 'none';
+
+        selectionScreen.innerHTML = `
+            <div class="waiting-for-choice">
+                <h3>Host is spinning the wheel...</h3>
+                <div class="spinner"></div>
+            </div>
+        `;
     }
 
     // Wheel drawing and spinning
@@ -261,8 +356,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const hue = (i * 360) / players.length;
             ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
             ctx.fill();
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 4;
             ctx.stroke();
 
             // Text
@@ -271,7 +366,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             ctx.rotate(startAngle + sliceAngle / 2);
             ctx.textAlign = 'center';
             ctx.fillStyle = 'white';
-            ctx.font = 'bold 14px sans-serif';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.strokeText(player.name, radius * 0.65, 5);
             ctx.fillText(player.name, radius * 0.65, 5);
             ctx.restore();
         });
@@ -281,16 +379,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
         ctx.fillStyle = 'white';
         ctx.fill();
-        ctx.strokeStyle = '#667eea';
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 4;
         ctx.stroke();
     }
 
-    spinWheelBtn.addEventListener('click', () => {
-        spinWheel();
-    });
-
-    function spinWheel() {
+    spinWheelBtn.addEventListener('click', async () => {
+        if (!isHost) return;
+        
         spinWheelBtn.disabled = true;
         
         const spinDuration = 3000;
@@ -317,9 +413,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         animate();
-    }
 
-    function selectPlayerFromWheel() {
+        // Broadcast spin to all players
+        await supabase
+            .from('game_state')
+            .upsert({
+                room_id: roomCode,
+                spinning: true,
+                current_player: null
+            });
+    });
+
+    async function selectPlayerFromWheel() {
         const sliceAngle = (2 * Math.PI) / players.length;
         const normalizedRotation = (currentRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
         const pointerAngle = (Math.PI / 2) - normalizedRotation;
@@ -327,15 +432,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedIndex = Math.floor(normalizedPointer / sliceAngle);
         
         currentSelectedPlayer = players[selectedIndex];
-        showSelectionScreen();
+
+        // Broadcast selected player
+        await supabase
+            .from('game_state')
+            .upsert({
+                room_id: roomCode,
+                spinning: false,
+                current_player: currentSelectedPlayer.player_id,
+                last_spin_at: new Date().toISOString()
+            });
+
+        if (isHost) {
+            showWaitingForPlayerChoice();
+        }
     }
 
-    async function showSelectionScreen() {
+    function showWaitingForPlayerChoice() {
         wheelSection.style.display = 'none';
         selectionScreen.style.display = 'block';
 
-        document.getElementById('selectedPlayerAvatar').src = currentSelectedPlayer.avatar_url;
-        document.getElementById('selectedPlayerName').textContent = currentSelectedPlayer.name;
+        selectionScreen.innerHTML = `
+            <div class="waiting-for-choice">
+                <h3>${currentSelectedPlayer.name} is choosing...</h3>
+                <div class="spinner"></div>
+            </div>
+        `;
+    }
+
+    async function showSelectionScreen(playerId) {
+        currentSelectedPlayer = players.find(p => p.player_id === playerId);
+        if (!currentSelectedPlayer) return;
+
+        wheelSection.style.display = 'none';
+        selectionScreen.style.display = 'block';
+        promptDisplay.style.display = 'none';
 
         // Count available prompts
         const availableTruths = allPrompts.filter(p => 
@@ -350,20 +481,42 @@ document.addEventListener('DOMContentLoaded', async () => {
             !p.used
         ).length;
 
-        document.getElementById('truthCount').textContent = `${availableTruths} available`;
-        document.getElementById('dareCount').textContent = `${availableDares} available`;
+        // Check if this player should choose
+        if (currentPlayer.playerId === playerId) {
+            selectionScreen.innerHTML = `
+                <div class="selected-player">
+                    <img src="${currentSelectedPlayer.avatar_url}" alt="${currentSelectedPlayer.name}">
+                    <h2>${currentSelectedPlayer.name}</h2>
+                </div>
+                <p class="selection-prompt">Choose Truth or Dare</p>
+                <div class="choice-buttons">
+                    <button class="btn btn-choice" id="chooseTruthBtn" ${availableTruths === 0 ? 'disabled' : ''}>
+                        <span class="choice-label">Truth</span>
+                        <span class="choice-count">${availableTruths} available</span>
+                    </button>
+                    <button class="btn btn-choice" id="chooseDareBtn" ${availableDares === 0 ? 'disabled' : ''}>
+                        <span class="choice-label">Dare</span>
+                        <span class="choice-count">${availableDares} available</span>
+                    </button>
+                </div>
+            `;
 
-        chooseTruthBtn.disabled = availableTruths === 0;
-        chooseDareBtn.disabled = availableDares === 0;
+            document.getElementById('chooseTruthBtn').addEventListener('click', () => selectPrompt('truth'));
+            document.getElementById('chooseDareBtn').addEventListener('click', () => selectPrompt('dare'));
+        } else {
+            selectionScreen.innerHTML = `
+                <div class="waiting-for-choice">
+                    <h3>${currentSelectedPlayer.name} is choosing...</h3>
+                    <div class="spinner"></div>
+                </div>
+            `;
+        }
 
         // Check if game over
         if (availableTruths === 0 && availableDares === 0) {
             showGameOver();
         }
     }
-
-    chooseTruthBtn.addEventListener('click', () => selectPrompt('truth'));
-    chooseDareBtn.addEventListener('click', () => selectPrompt('dare'));
 
     async function selectPrompt(type) {
         const availablePrompts = allPrompts.filter(p => 
@@ -389,28 +542,60 @@ document.addEventListener('DOMContentLoaded', async () => {
                 allPrompts[promptIndex].used = true;
             }
 
+            // Broadcast prompt selection
+            await supabase
+                .from('game_state')
+                .update({ 
+                    selected_prompt_id: selectedPrompt.id,
+                    selected_type: type
+                })
+                .eq('room_id', roomCode);
+
             showPrompt(selectedPrompt);
         }
     }
 
     function showPrompt(prompt) {
+        wheelSection.style.display = 'none';
         selectionScreen.style.display = 'none';
         promptDisplay.style.display = 'block';
 
         document.getElementById('promptType').textContent = prompt.type.toUpperCase();
         document.getElementById('promptText').textContent = prompt.text;
+
+        // Only the selected player can click done
+        if (currentPlayer.playerId === currentSelectedPlayer.player_id) {
+            doneBtn.style.display = 'block';
+        } else {
+            doneBtn.style.display = 'none';
+        }
     }
 
-    doneBtn.addEventListener('click', () => {
+    doneBtn.addEventListener('click', async () => {
         // Check if all prompts are used
         const remainingPrompts = allPrompts.filter(p => !p.used);
         
         if (remainingPrompts.length === 0) {
+            await supabase
+                .from('game_state')
+                .update({ game_over: true })
+                .eq('room_id', roomCode);
             showGameOver();
         } else {
-            promptDisplay.style.display = 'none';
-            wheelSection.style.display = 'block';
-            spinWheelBtn.disabled = false;
+            // Signal ready for next spin
+            await supabase
+                .from('game_state')
+                .update({ 
+                    ready_for_spin: true,
+                    current_player: null
+                })
+                .eq('room_id', roomCode);
+
+            if (isHost) {
+                showWheelForHost();
+            } else {
+                showWaitingForSpin();
+            }
         }
     });
 
@@ -422,6 +607,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     backToLobbyBtn.addEventListener('click', async () => {
+        if (!isHost) {
+            alert('Only the host can restart the game');
+            return;
+        }
+
         // Reset room state
         await supabase
             .from('rooms')
@@ -440,6 +630,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             .delete()
             .eq('room_id', roomCode);
 
+        // Delete game state
+        await supabase
+            .from('game_state')
+            .delete()
+            .eq('room_id', roomCode);
+
         window.location.href = `lobby.html?room=${roomCode}`;
     });
 
@@ -455,7 +651,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     filter: `room_id=eq.${roomCode}`
                 },
                 async (payload) => {
-                    console.log('Player updated:', payload);
                     await updateSubmissionCount();
                     
                     // Check if all submitted
@@ -467,7 +662,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const allSubmitted = data && data.every(p => p.has_submitted);
                     
                     if (allSubmitted && currentPhase === 'submission') {
-                        // Update room state to playing
                         const { data: roomData } = await supabase
                             .from('rooms')
                             .select('state')
@@ -491,10 +685,41 @@ document.addEventListener('DOMContentLoaded', async () => {
                     filter: `id=eq.${roomCode}`
                 },
                 (payload) => {
-                    console.log('Room updated:', payload);
                     if (payload.new.state === 'playing' && currentPhase === 'submission') {
                         currentPhase = 'playing';
                         showGameplayPhase();
+                    }
+                }
+            )
+            .on('postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'game_state',
+                    filter: `room_id=eq.${roomCode}`
+                },
+                async (payload) => {
+                    const state = payload.new;
+                    
+                    if (state.current_player && !isHost) {
+                        // Player was selected
+                        await showSelectionScreen(state.current_player);
+                    }
+
+                    if (state.selected_prompt_id) {
+                        // Prompt was selected, show it
+                        const prompt = allPrompts.find(p => p.id === state.selected_prompt_id);
+                        if (prompt) {
+                            showPrompt(prompt);
+                        }
+                    }
+
+                    if (state.ready_for_spin && isHost) {
+                        showWheelForHost();
+                    }
+
+                    if (state.game_over) {
+                        showGameOver();
                     }
                 }
             )
@@ -506,7 +731,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     filter: `room_id=eq.${roomCode}`
                 },
                 async (payload) => {
-                    console.log('Prompt updated:', payload);
                     // Reload prompts
                     const { data: promptsData } = await supabase
                         .from('prompts')
