@@ -1,23 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rodeo Lobby</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobby - Rodeo</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="container">
+        <div class="lobby-screen">
+            <h1 class="lobby-title">Game Lobby</h1>
+            
+            <div class="room-code-display">
+                <p class="room-code-label">Room Code</p>
+                <h2 class="room-code" id="roomCodeDisplay">------</h2>
+                <p class="room-code-hint">Share this code with friends</p>
+            </div>
 
-  <div class="container">
-    <h2>Lobby</h2>
-    <p>Game Code: <span id="roomCode"></span></p>
+            <div class="players-section">
+                <h3>Players (<span id="playerCount">0</span>)</h3>
+                <div id="playersList" class="players-list">
+                    <!-- Players will be added here dynamically -->
+                </div>
+            </div>
 
-    <ul id="playerList"></ul>
+            <div class="lobby-actions">
+                <button class="btn btn-primary" id="startGameBtn" style="display: none;">Start Game</button>
+                <button class="btn btn-danger" id="leaveBtn">Leave Game</button>
+            </div>
 
-    <button onclick="leaveRoom()">Leave</button>
-  </div>
+            <div id="waitingMessage" class="waiting-message" style="display: none;">
+                <div class="spinner"></div>
+                <p>Waiting for host to start game...</p>
+            </div>
+        </div>
+    </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="lobby.js"></script>
 </body>
 </html>
