@@ -1,12 +1,9 @@
 // Supabase configuration
-const SUPABASE_URL = 'https://unxiyhasvyiymgyqgzmd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueGl5aGFzdnlpeW1neXFnem1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTE3NjUsImV4cCI6MjA4NjMyNzc2NX0.QrLILtXwlAdcabjD-BCaPU4I26oTGDvW_EWdqkKja1I';
+var SUPABASE_URL = 'https://unxiyhasvyiymgyqgzmd.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueGl5aGFzdnlpeW1neXFnem1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTE3NjUsImV4cCI6MjA4NjMyNzc2NX0.QrLILtXwlAdcabjD-BCaPU4I26oTGDvW_EWdqkKja1I';
 
 // Initialize Supabase client
-let supabase;
-if (window.supabase) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
+var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Generate unique player ID
 window.generatePlayerId = function() {
