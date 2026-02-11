@@ -1,0 +1,66 @@
+# Would You Rather Scenarios
+# Format: Option A | Option B | Mode (family/friends/freaky/party)
+
+Have unlimited pizza for life | Have unlimited tacos for life | family
+Be able to fly | Be invisible | family
+Live in a treehouse | Live in a castle | family
+Have a pet dragon | Have a pet unicorn | family
+Always be 10 minutes late | Always be 20 minutes early | family
+Spend a week with {player} at Disney World | Spend a week with {player} at the beach | family
+Never eat dessert again | Never eat pizza again | family
+Be able to talk to animals | Be able to speak every language | family
+Have super strength | Have super speed | family
+Live without music | Live without TV | family
+Always have to sing instead of speak | Always have to dance instead of walk | family
+Be the funniest person alive | Be the smartest person alive | family
+Have a rewind button for life | Have a pause button for life | family
+Never use social media again | Never watch another movie/show again | family
+Go on a road trip with {player} | Go camping with {player} | family
+
+Kiss {player} | Go on a date with {player} | friends
+Never have your phone die | Never have slow wifi | friends
+Be TikTok famous | Be Instagram famous | friends
+Fight one horse-sized duck | Fight 100 duck-sized horses | friends
+Share a secret with {player} | Share your phone password with {player} | friends
+Always know what {player} is thinking | Always know when {player} is lying | friends
+Lose all your photos | Lose all your money | friends
+Never drink coffee again | Never drink alcohol again | friends
+Live with {player} for a year | Be roommates with {player} for a month | friends
+Have everyone at the party follow you on Instagram | Get free drinks all night | friends
+Only eat chicken nuggets | Only eat french fries | friends
+Win $10,000 but {player} knows your bank password | Win $5,000 and keep it secret | friends
+Always be the designated driver | Always need a ride home | friends
+Hear {player} sing karaoke for an hour | Watch {player} attempt standup comedy | friends
+Never go to parties again | Never have a quiet night in again | friends
+
+Sleep with {player} | Sleep with {player}'s best friend | freaky
+Send a nude to the group chat | Post your search history publicly | freaky
+Make out with {player} right now | Give {player} a lap dance | freaky
+Be handcuffed to {player} for 24 hours | Be in a room alone with {player} for 6 hours | freaky
+Have everyone know your body count | Have everyone see your text messages | freaky
+Drunk text your ex | Drunk call your crush | freaky
+Have a threesome with {player} and {player} | Have a threesome with two strangers | freaky
+Never have sex again | Never masturbate again | freaky
+Hook up with {player} in front of everyone | Hook up with {player} in secret but everyone finds out | freaky
+Let {player} go through your phone | Let {player} read your diary | freaky
+Send your nudes to {player} | Receive {player}'s nudes | freaky
+Be dominated by {player} | Dominate {player} | freaky
+Have sex in public once | Never have sex with lights on again | freaky
+Make out with everyone in this room | Never kiss anyone again for a year | freaky
+Try every kink once | Stick to vanilla forever | freaky
+
+Take 5 shots right now | Shotgun 3 beers right now | party
+Streak around the block | Flash the group | party
+Play truth or dare with {player} for an hour | Play never have I ever for an hour | party
+Drink every time {player} drinks tonight | Do a body shot off {player} | party
+Beer bong 2 beers | Take 10 shots in 10 minutes | party
+Fight {player} | Kiss {player} | party
+Chug mystery drink | Drink from {player}'s drink all night | party
+Do karaoke drunk | Dance on a table | party
+Let {player} draw on your face | Let the group choose your outfit tomorrow | party
+Lose a drinking game and streak | Win a drinking game and take 3 shots | party
+Take a shot every 10 minutes for an hour | Shotgun a beer every 30 minutes for 2 hours | party
+Make out with {player} for 30 seconds | Give {player} a piggyback ride around the party | party
+Compete in a chugging contest with {player} | Play flip cup with {player} as your partner | party
+Start a dance circle | Start a mosh pit | party
+Drink whatever {player} mixes for you | Let {player} feed you mystery shots | party
