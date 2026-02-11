@@ -1,4 +1,5 @@
 // Home screen logic
+document.addEventListener('DOMContentLoaded', () => {
 let selectedFile = null;
 let playerData = getPlayerData();
 
@@ -223,3 +224,5 @@ submitJoinBtn.addEventListener('click', async () => {
         submitJoinBtn.textContent = 'Join';
     }
 });
+
+}); // End DOMContentLoaded
