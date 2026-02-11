@@ -435,8 +435,8 @@
                     <p class="instruction" style="color: #FF3B30; font-size: 1.5rem;">⚠️ FACE YOUR PHONE AWAY FROM YOU!</p>
                 `;
                 
-                // Start countdown
-                if (isHost && state.countdownFrom > 0) {
+                // Start countdown - current player controls it
+                if (isCurrentPlayer && state.countdownFrom > 0) {
                     setTimeout(() => {
                         const newCount = state.countdownFrom - 1;
                         if (newCount > 0) {
@@ -497,10 +497,15 @@
         }
 
         async function nextTurn() {
-            if (!isHost) return;
+            // Only the current player (whose turn it is) can advance
+            const currentPlayerId = (await database.ref('rooms/' + roomCode + '/charadesState/currentPlayerId').once('value')).val();
+            
+            if (playerData.playerId !== currentPlayerId) {
+                console.log('Not your turn, cannot advance');
+                return;
+            }
             
             // Increment current player's turn count
-            const currentPlayerId = (await database.ref('rooms/' + roomCode + '/charadesState/currentPlayerId').once('value')).val();
             const turns = (await database.ref('rooms/' + roomCode + '/charadesState/turns').once('value')).val() || {};
             
             turns[currentPlayerId] = (turns[currentPlayerId] || 0) + 1;
