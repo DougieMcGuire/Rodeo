@@ -3,90 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game - Rodeo</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>Game - RODEO</title>
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="game-screen">
-            <!-- SUBMISSION PHASE -->
-            <div id="submissionPhase" class="phase" style="display: none;">
-                <h1>Truth or Dare</h1>
-                <p class="phase-instruction">Submit one truth and one dare for each player</p>
-                
-                <div id="submissionForm" class="submission-form">
-                    <!-- Dynamically generated submission fields -->
-                </div>
-
-                <div class="submission-status">
-                    <p><span id="submittedCount">0</span> / <span id="totalPlayers">0</span> players ready</p>
-                </div>
-
-                <button class="btn btn-primary" id="submitPromptsBtn" style="display: none;">Submit All</button>
-                
-                <div id="waitingForOthers" class="waiting-message" style="display: none;">
-                    <div class="spinner"></div>
-                    <p>Waiting for other players to submit...</p>
-                </div>
+            <h1 class="game-title" id="gameTitle">Loading...</h1>
+            
+            <div id="gameContent" class="instruction-box">
+                <p>Game loading...</p>
             </div>
 
-            <!-- GAMEPLAY PHASE -->
-            <div id="gameplayPhase" class="phase" style="display: none;">
-                <h1>Truth or Dare</h1>
-                
-                <!-- Wheel -->
-                <div id="wheelSection" class="wheel-section">
-                    <div class="wheel-container">
-                        <canvas id="wheelCanvas" width="350" height="350"></canvas>
-                        <div class="wheel-pointer">▼</div>
-                    </div>
-                    <button class="btn btn-primary btn-large" id="spinWheelBtn">Spin the Wheel</button>
-                </div>
-
-                <!-- Selection Screen -->
-                <div id="selectionScreen" class="selection-screen" style="display: none;">
-                    <div class="selected-player">
-                        <img id="selectedPlayerAvatar" src="" alt="Player">
-                        <h2 id="selectedPlayerName">Player Name</h2>
-                    </div>
-                    
-                    <p class="selection-prompt">Choose Truth or Dare</p>
-                    
-                    <div class="choice-buttons">
-                        <button class="btn btn-choice" id="chooseTruthBtn">
-                            <span class="choice-label">Truth</span>
-                            <span class="choice-count" id="truthCount">0 available</span>
-                        </button>
-                        <button class="btn btn-choice" id="chooseDareBtn">
-                            <span class="choice-label">Dare</span>
-                            <span class="choice-count" id="dareCount">0 available</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Prompt Display -->
-                <div id="promptDisplay" class="prompt-display" style="display: none;">
-                    <div class="prompt-card">
-                        <div class="prompt-type" id="promptType">Truth</div>
-                        <div class="prompt-text" id="promptText">Prompt text goes here</div>
-                    </div>
-                    <button class="btn btn-primary" id="doneBtn">Done</button>
-                </div>
-
-                <!-- Game Over -->
-                <div id="gameOver" class="game-over" style="display: none;">
-                    <h2>🎉 Game Complete!</h2>
-                    <p>All truths and dares have been used</p>
-                    <button class="btn btn-primary" id="backToLobbyBtn">Back to Lobby</button>
-                </div>
-            </div>
-
-            <button class="btn btn-danger btn-small" id="leaveGameBtn" style="position: absolute; top: 20px; right: 20px;">Leave</button>
+            <button class="btn btn-danger" id="leaveGameBtn">LEAVE GAME</button>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <script src="config.js"></script>
     <script src="game.js"></script>
 </body>
