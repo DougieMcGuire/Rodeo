@@ -31,7 +31,8 @@ document.querySelectorAll('.game-card').forEach(card => {
         try {
             console.log('Creating room for game:', gameType);
             
-            const playerId = generateId();
+            // Use existing player ID from localStorage, don't generate new one
+            const playerId = playerData.playerId;
             const roomCode = generateRoomCode();
             
             console.log('Room code:', roomCode);
