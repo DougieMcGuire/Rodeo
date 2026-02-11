@@ -5,8 +5,19 @@ const urlParams = new URLSearchParams(window.location.search);
 const roomCode = urlParams.get('room') || getCurrentRoom();
 const playerData = getPlayerData();
 
-if (!roomCode || !playerData) {
-    console.error('Missing room or player data');
+console.log('=== LOBBY DEBUG ===');
+console.log('Room code from URL:', urlParams.get('room'));
+console.log('Room code from storage:', getCurrentRoom());
+console.log('Final room code:', roomCode);
+console.log('Player data:', playerData);
+
+if (!roomCode) {
+    console.error('NO ROOM CODE - redirecting to home');
+    window.location.href = 'index.html';
+}
+
+if (!playerData) {
+    console.error('NO PLAYER DATA - redirecting to home');
     window.location.href = 'index.html';
 }
 
@@ -28,10 +39,15 @@ let hostId = null;
 
 // Listen for room data (game type, mode, host)
 database.ref('rooms/' + roomCode).on('value', (snapshot) => {
+    console.log('Room data received:', snapshot.val());
     const room = snapshot.val();
     if (room) {
         hostId = room.hostId;
         isHost = (hostId === playerData.playerId);
+        
+        console.log('Host ID:', hostId);
+        console.log('Current player ID:', playerData.playerId);
+        console.log('Is host:', isHost);
         
         // Update game info display
         const gameNames = {
@@ -57,21 +73,24 @@ database.ref('rooms/' + roomCode).on('value', (snapshot) => {
         
         // Show start button if host
         if (isHost) {
-            console.log('Current player is host');
+            console.log('SHOWING START BUTTON - Current player is host');
             hostControls.style.display = 'block';
         } else {
+            console.log('Hiding start button - not host');
             hostControls.style.display = 'none';
         }
+    } else {
+        console.error('Room data is null!');
     }
 });
 
 // Listen for players
 database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
     const players = snapshot.val();
-    console.log('Players updated:', players);
+    console.log('Players data received:', players);
     
     if (!players) {
-        console.log('No players in room, redirecting home');
+        console.log('NO PLAYERS - redirecting home');
         clearCurrentRoom();
         window.location.href = 'index.html';
         return;
@@ -79,11 +98,14 @@ database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
     
     // Convert to array and sort by join order
     const playersArray = Object.values(players).sort((a, b) => a.joinOrder - b.joinOrder);
+    console.log('Players array:', playersArray);
     
     // Check if current player is still in the room
     const currentPlayerInRoom = playersArray.find(p => p.playerId === playerData.playerId);
+    console.log('Current player in room:', currentPlayerInRoom);
+    
     if (!currentPlayerInRoom) {
-        console.log('Current player not in room, redirecting home');
+        console.log('CURRENT PLAYER NOT IN ROOM - redirecting home');
         clearCurrentRoom();
         window.location.href = 'index.html';
         return;
@@ -106,6 +128,8 @@ database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
         
         playersList.appendChild(playerCard);
     });
+    
+    console.log('Players rendered successfully');
 });
 
 // Start game button
