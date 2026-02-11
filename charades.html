@@ -334,6 +334,7 @@
         let playerTurns = {}; // Track how many turns each player has had
         let currentWord = '';
         let countdownInterval = null;
+        let gameStateListenerAttached = false;
         let words = [
             'Giraffe', 'Elephant', 'Kangaroo', 'Penguin', 'Octopus', 'Butterfly',
             'Astronaut', 'Cowboy', 'Pirate', 'Ninja', 'Chef', 'Doctor',
@@ -344,8 +345,8 @@
             'Birthday', 'Wedding', 'Halloween', 'Christmas', 'Concert', 'Graduation'
         ];
 
-        // Listen for room and players
-        database.ref('rooms/' + roomCode).on('value', (snapshot) => {
+        // Listen for room first to get isHost
+        database.ref('rooms/' + roomCode).once('value', (snapshot) => {
             const room = snapshot.val();
             if (!room) {
                 clearCurrentRoom();
@@ -353,46 +354,61 @@
                 return;
             }
             isHost = (room.hostId === playerData.playerId);
-        });
-
-        database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
-            const playersData = snapshot.val();
-            if (!playersData) {
-                clearCurrentRoom();
-                window.location.href = 'index.html';
-                return;
-            }
-            players = Object.values(playersData).sort((a, b) => a.joinOrder - b.joinOrder);
+            console.log('Is host:', isHost);
             
-            // Initialize turn counts
-            players.forEach(p => {
-                if (!playerTurns[p.playerId]) {
-                    playerTurns[p.playerId] = 0;
+            // Now listen for players
+            database.ref('rooms/' + roomCode + '/players').once('value', (snapshot) => {
+                const playersData = snapshot.val();
+                if (!playersData) {
+                    clearCurrentRoom();
+                    window.location.href = 'index.html';
+                    return;
                 }
+                players = Object.values(playersData).sort((a, b) => a.joinOrder - b.joinOrder);
+                console.log('Players loaded:', players.length);
+                
+                // Initialize turn counts
+                players.forEach(p => {
+                    if (!playerTurns[p.playerId]) {
+                        playerTurns[p.playerId] = 0;
+                    }
+                });
+                
+                // NOW attach game state listener
+                attachGameStateListener();
             });
         });
 
-        // Listen for game state
-        database.ref('rooms/' + roomCode + '/charadesState').on('value', (snapshot) => {
-            const state = snapshot.val();
+        function attachGameStateListener() {
+            if (gameStateListenerAttached) return;
+            gameStateListenerAttached = true;
             
-            if (!state) {
-                // Initialize game
-                if (isHost) {
-                    initGame();
+            console.log('Attaching game state listener...');
+            
+            database.ref('rooms/' + roomCode + '/charadesState').on('value', (snapshot) => {
+                const state = snapshot.val();
+                
+                if (!state) {
+                    // Initialize game immediately if host
+                    if (isHost && players.length > 0) {
+                        console.log('Host initializing game NOW...');
+                        initGame();
+                    } else {
+                        showLoading();
+                    }
                 } else {
-                    showLoading();
+                    renderGameState(state);
                 }
-            } else {
-                renderGameState(state);
-            }
-        });
+            });
+        }
 
         async function initGame() {
-            console.log('Host initializing game...');
+            console.log('Host initializing game with players:', players);
             
             // Pick first player randomly
             const firstPlayer = players[Math.floor(Math.random() * players.length)];
+            
+            console.log('First player:', firstPlayer.name);
             
             await database.ref('rooms/' + roomCode + '/charadesState').set({
                 phase: 'countdown',
@@ -401,6 +417,8 @@
                 countdownFrom: 5,
                 turns: {}
             });
+            
+            console.log('Game initialized!');
         }
 
         function renderGameState(state) {
