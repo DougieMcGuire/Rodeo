@@ -37,20 +37,8 @@ document.querySelectorAll('.game-card').forEach(card => {
             console.log('Room code:', roomCode);
             console.log('Player ID:', playerId);
             
-            // Upload avatar if it's a base64 data URL (not already uploaded)
-            let avatarUrl = playerData.avatarUrl;
-            if (avatarUrl && avatarUrl.startsWith('data:')) {
-                console.log('Uploading avatar...');
-                // Convert base64 to blob
-                const response = await fetch(avatarUrl);
-                const blob = await response.blob();
-                const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
-                avatarUrl = await uploadAvatar(playerId, file);
-                console.log('Avatar uploaded:', avatarUrl);
-            }
-            
-            // Save updated player data with real uploaded URL
-            savePlayerData(playerId, playerData.name, avatarUrl);
+            // Just use the avatar URL as-is (base64 from localStorage)
+            const avatarUrl = playerData.avatarUrl;
             
             console.log('Creating room in database...');
             
