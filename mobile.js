@@ -15,6 +15,7 @@
     
     console.log('Is mobile:', isMobile);
     console.log('Is standalone:', isStandalone);
+    console.log('Current path:', window.location.pathname);
 
     // ALWAYS optimize for mobile (browser or standalone)
     if (isMobile) {
@@ -22,11 +23,19 @@
     }
 
     // Show install prompt on home screen only if not standalone
-    if (isMobile && !isStandalone && window.location.pathname.includes('index.html') || window.location.pathname === '/') {
+    // Check if on index page (could be /, /index.html, or /Rodeo/index.html etc)
+    const isIndexPage = window.location.pathname === '/' || 
+                       window.location.pathname.includes('index.html') ||
+                       window.location.pathname.endsWith('/');
+    
+    if (isMobile && !isStandalone && isIndexPage) {
+        console.log('Showing install prompt...');
         // Only show on index.html (home screen)
         setTimeout(() => {
             showInstallPrompt();
         }, 500); // Small delay so page loads first
+    } else {
+        console.log('Not showing prompt - mobile:', isMobile, 'standalone:', isStandalone, 'isIndex:', isIndexPage);
     }
 
     // Extra optimizations for standalone mode
@@ -206,19 +215,41 @@
     function optimizeForMobile() {
         console.log('Optimizing for mobile...');
 
-        // Update viewport meta tag
+        // Update viewport meta tag - AGGRESSIVE zoom prevention
         let viewport = document.querySelector('meta[name="viewport"]');
         if (!viewport) {
             viewport = document.createElement('meta');
             viewport.name = 'viewport';
             document.head.appendChild(viewport);
         }
-        viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+        viewport.content = 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+
+        // Add theme color to remove white bars
+        let themeColor = document.querySelector('meta[name="theme-color"]');
+        if (!themeColor) {
+            themeColor = document.createElement('meta');
+            themeColor.name = 'theme-color';
+            document.head.appendChild(themeColor);
+        }
+        themeColor.content = '#8b0000'; // Dark red to match background
 
         // Add mobile-optimized styles
         const style = document.createElement('style');
         style.id = 'mobile-optimizations';
         style.textContent = `
+            /* Remove white bars on mobile */
+            html {
+                background: #8b0000;
+                min-height: 100%;
+            }
+
+            body {
+                background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
+                background-attachment: fixed;
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+            }
+
             /* Prevent text selection (except inputs) */
             * {
                 -webkit-user-select: none;
@@ -237,8 +268,19 @@
                 user-select: text;
             }
 
+            /* AGGRESSIVE zoom prevention */
+            html {
+                touch-action: pan-y;
+                -ms-touch-action: pan-y;
+            }
+
+            body, .container, .game-screen, .lobby-screen {
+                touch-action: pan-y;
+                -ms-touch-action: pan-y;
+            }
+
             /* Prevent zoom on double tap */
-            button, a, .btn {
+            button, a, .btn, input, select, textarea {
                 touch-action: manipulation;
             }
 
@@ -292,21 +334,47 @@
                 -webkit-text-size-adjust: 100%;
                 text-size-adjust: 100%;
             }
+
+            /* Force layout to stay at 1x zoom */
+            @viewport {
+                width: device-width;
+                zoom: 1;
+                min-zoom: 1;
+                max-zoom: 1;
+                user-zoom: fixed;
+            }
         `;
         document.head.appendChild(style);
+
+        // AGGRESSIVE zoom prevention with event listeners
+        let lastTouchDistance = 0;
+        
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                // Multiple fingers = pinch
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', function(e) {
+            if (e.touches.length > 1) {
+                // Pinch gesture
+                e.preventDefault();
+            }
+        }, { passive: false });
 
         // Prevent accidental zoom gestures
         document.addEventListener('gesturestart', function(e) {
             e.preventDefault();
-        });
+        }, { passive: false });
 
         document.addEventListener('gesturechange', function(e) {
             e.preventDefault();
-        });
+        }, { passive: false });
 
         document.addEventListener('gestureend', function(e) {
             e.preventDefault();
-        });
+        }, { passive: false });
 
         // Prevent double-tap zoom
         let lastTouchEnd = 0;
