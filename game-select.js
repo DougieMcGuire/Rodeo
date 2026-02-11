@@ -25,7 +25,7 @@ document.querySelectorAll('.game-card').forEach(card => {
         
         try {
             // Update room with game type and mode
-            await db.collection('rooms').doc(roomCode).update({
+            await database.ref('rooms/' + roomCode).update({
                 gameMode: selectedMode,
                 state: 'lobby',
                 gameType: gameType
@@ -43,7 +43,7 @@ document.querySelectorAll('.game-card').forEach(card => {
 document.getElementById('backToHomeBtn').addEventListener('click', async () => {
     try {
         // Delete room
-        await db.collection('rooms').doc(roomCode).delete();
+        await database.ref('rooms/' + roomCode).remove();
         clearCurrentRoom();
         window.location.href = 'index.html';
     } catch (error) {
