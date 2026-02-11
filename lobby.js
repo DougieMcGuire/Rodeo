@@ -25,6 +25,7 @@ roomCodeDisplay.textContent = roomCode.substr(0, 3) + ' ' + roomCode.substr(3);
 
 let isHost = false;
 let hostId = null;
+let hostCheckTimeout = null;
 
 // Listen for room data (game type, mode, host)
 database.ref('rooms/' + roomCode).on('value', (snapshot) => {
@@ -89,14 +90,43 @@ database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
         return;
     }
     
-    // If host left, end game for everyone
+    // If host left, wait 3 seconds before ending game (gives time for page transitions)
     const hostStillHere = playersArray.find(p => p.playerId === hostId);
     if (!hostStillHere && !isHost) {
-        console.log('Host left, ending game');
-        clearCurrentRoom();
-        alert('Host left the game');
-        window.location.href = 'index.html';
-        return;
+        // Clear any existing timeout
+        if (hostCheckTimeout) {
+            clearTimeout(hostCheckTimeout);
+        }
+        
+        console.log('Host not in player list, checking in 3 seconds...');
+        
+        // Wait 3 seconds then check again
+        hostCheckTimeout = setTimeout(() => {
+            database.ref('rooms/' + roomCode + '/players').once('value', (checkSnapshot) => {
+                const currentPlayers = checkSnapshot.val();
+                if (!currentPlayers) {
+                    clearCurrentRoom();
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                const playersCheck = Object.values(currentPlayers);
+                const hostCheck = playersCheck.find(p => p.playerId === hostId);
+                
+                if (!hostCheck) {
+                    console.log('Host still gone after 3 seconds, ending game');
+                    clearCurrentRoom();
+                    alert('Host left the game');
+                    window.location.href = 'index.html';
+                }
+            });
+        }, 3000);
+    } else {
+        // Host is here, clear any pending timeout
+        if (hostCheckTimeout) {
+            clearTimeout(hostCheckTimeout);
+            hostCheckTimeout = null;
+        }
     }
     
     // Render players
