@@ -23,6 +23,48 @@ const leaveBtn = document.getElementById('leaveBtn');
 // Display room code
 roomCodeDisplay.textContent = roomCode.substr(0, 3) + ' ' + roomCode.substr(3);
 
+let isHost = false;
+let hostId = null;
+
+// Listen for room data (game type, mode, host)
+database.ref('rooms/' + roomCode).on('value', (snapshot) => {
+    const room = snapshot.val();
+    if (room) {
+        hostId = room.hostId;
+        isHost = (hostId === playerData.playerId);
+        
+        // Update game info display
+        const gameNames = {
+            'truth-or-dare': '🤠 Truth or Dare',
+            'charades': '🎭 Charades',
+            'would-you-rather': '🤔 Would You Rather',
+            'wavelength': '📡 Wavelength',
+            'roulette': '🎰 Roulette',
+            'misfit': '🕵️ Misfit'
+        };
+        
+        const modeNames = {
+            'family': 'Family',
+            'friends': 'Friends',
+            'freaky': 'Freaky',
+            'party': 'Party'
+        };
+        
+        const gameName = gameNames[room.gameType] || room.gameType;
+        const modeName = modeNames[room.gameMode] || room.gameMode;
+        
+        document.querySelector('.game-title').textContent = `${gameName} - ${modeName} Mode`;
+        
+        // Show start button if host
+        if (isHost) {
+            console.log('Current player is host');
+            hostControls.style.display = 'block';
+        } else {
+            hostControls.style.display = 'none';
+        }
+    }
+});
+
 // Listen for players
 database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
     const players = snapshot.val();
@@ -30,6 +72,7 @@ database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
     
     if (!players) {
         console.log('No players, redirecting home');
+        clearCurrentRoom();
         window.location.href = 'index.html';
         return;
     }
@@ -37,29 +80,42 @@ database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
     // Convert to array and sort by join order
     const playersArray = Object.values(players).sort((a, b) => a.joinOrder - b.joinOrder);
     
+    // Check if current player is still in the room
+    const currentPlayerInRoom = playersArray.find(p => p.playerId === playerData.playerId);
+    if (!currentPlayerInRoom) {
+        console.log('Current player not in room, redirecting home');
+        clearCurrentRoom();
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    // If host left, end game for everyone
+    const hostStillHere = playersArray.find(p => p.playerId === hostId);
+    if (!hostStillHere && !isHost) {
+        console.log('Host left, ending game');
+        clearCurrentRoom();
+        alert('Host left the game');
+        window.location.href = 'index.html';
+        return;
+    }
+    
     // Render players
     playersList.innerHTML = '';
     playersArray.forEach(player => {
         const playerCard = document.createElement('div');
         playerCard.className = 'player-card';
-        if (player.isHost) {
+        if (player.playerId === hostId) {
             playerCard.classList.add('is-host');
         }
         
         playerCard.innerHTML = `
             <img src="${player.avatarUrl}" alt="${player.name}" class="player-avatar-small">
             <span class="player-name">${player.name}</span>
-            ${player.isHost ? '<span class="host-badge">HOST</span>' : ''}
+            ${player.playerId === hostId ? '<span class="host-badge">HOST</span>' : ''}
         `;
         
         playersList.appendChild(playerCard);
     });
-    
-    // Show start button if current player is host
-    const currentPlayer = playersArray.find(p => p.playerId === playerData.playerId);
-    if (currentPlayer && currentPlayer.isHost) {
-        hostControls.style.display = 'block';
-    }
 });
 
 // Start game button
@@ -82,18 +138,34 @@ startGameBtn.addEventListener('click', async () => {
     }
 });
 
-// Leave button
+// Leave button - no confirmation popup
 leaveBtn.addEventListener('click', async () => {
-    if (confirm('Are you sure you want to leave?')) {
-        try {
+    try {
+        // If host is leaving, delete entire room
+        if (isHost) {
+            await database.ref('rooms/' + roomCode).remove();
+        } else {
             // Remove player from room
             await database.ref('rooms/' + roomCode + '/players/' + playerData.playerId).remove();
-            clearCurrentRoom();
-            window.location.href = 'index.html';
-        } catch (error) {
-            console.error('Error leaving:', error);
-            window.location.href = 'index.html';
         }
+        clearCurrentRoom();
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Error leaving:', error);
+        clearCurrentRoom();
+        window.location.href = 'index.html';
+    }
+});
+
+// Handle tab close / page unload - remove player automatically
+window.addEventListener('beforeunload', () => {
+    // Use sendBeacon for reliable cleanup on page close
+    if (isHost) {
+        // Host leaving = delete room
+        database.ref('rooms/' + roomCode).remove();
+    } else {
+        // Regular player = just remove them
+        database.ref('rooms/' + roomCode + '/players/' + playerData.playerId).remove();
     }
 });
 
