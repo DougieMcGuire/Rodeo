@@ -1,108 +1,74 @@
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyBaJXCqGmUaGumvcWNE7w4FOOzTJVDH-yg",
-    authDomain: "polorfriends.firebaseapp.com",
-    databaseURL: "https://polorfriends-default-rtdb.firebaseio.com",
-    projectId: "polorfriends",
-    storageBucket: "polorfriends.firebasestorage.app",
-    messagingSenderId: "328546525972",
-    appId: "1:328546525972:web:a6fe0f0a45b4565a7b1801",
-    measurementId: "G-07B4713DQQ"
-};
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RODEO - Party Games</title>
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Home Screen -->
+        <div id="homeScreen" class="home-screen">
+            <img src="assets/wordmark.png" alt="RODEO" class="wordmark">
+            
+            <div class="profile-section">
+                <div class="avatar-upload" id="avatarUpload">
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    <div class="avatar-circle">
+                        <svg class="avatar-placeholder" id="avatarPlaceholder" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="8" r="4"/>
+                            <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
+                        </svg>
+                        <img id="avatarPreview" class="avatar-preview" style="display: none;">
+                    </div>
+                    <div class="edit-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </div>
+                </div>
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+                <input 
+                    type="text" 
+                    id="nameInput" 
+                    class="name-input" 
+                    placeholder="enter name here"
+                    maxlength="20"
+                >
+            </div>
 
-console.log('Firebase initialized with Realtime Database');
+            <button class="btn btn-primary" id="joinBtn">JOIN</button>
+            <button class="btn" id="hostBtn">HOST</button>
+        </div>
+    </div>
 
-// Utility functions
-function generateId() {
-    return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-}
+    <!-- Join Code Modal -->
+    <div id="joinModal" class="modal">
+        <div class="modal-content">
+            <h2>Enter Room Code</h2>
+            <input 
+                type="text" 
+                id="codeInput" 
+                class="code-input" 
+                placeholder="123 456"
+                maxlength="7"
+                inputmode="numeric"
+            >
+            <div class="modal-buttons">
+                <button class="btn btn-small btn-cancel" id="cancelJoinBtn">Cancel</button>
+                <button class="btn btn-small btn-primary" id="submitJoinBtn">Join</button>
+            </div>
+        </div>
+    </div>
 
-function generateRoomCode() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-function getPlayerData() {
-    const data = localStorage.getItem('playerData');
-    return data ? JSON.parse(data) : null;
-}
-
-function savePlayerData(playerId, name, avatarUrl) {
-    const data = { playerId, name, avatarUrl };
-    localStorage.setItem('playerData', JSON.stringify(data));
-    console.log('Saved player data:', data);
-    return data;
-}
-
-function getCurrentRoom() {
-    return localStorage.getItem('currentRoom');
-}
-
-function setCurrentRoom(roomCode) {
-    localStorage.setItem('currentRoom', roomCode);
-}
-
-function clearCurrentRoom() {
-    localStorage.removeItem('currentRoom');
-}
-
-// Load scenarios
-async function loadScenarios(mode = 'friends') {
-    try {
-        const response = await fetch('assets/scenarios.txt');
-        const text = await response.text();
-        const lines = text.split('\n').filter(line => 
-            line.trim() && 
-            !line.startsWith('#') && 
-            line.includes('|')
-        );
-        
-        return lines
-            .map(line => {
-                const parts = line.split('|').map(p => p.trim());
-                if (parts.length >= 3) {
-                    return {
-                        optionA: parts[0],
-                        optionB: parts[1],
-                        mode: parts[2]
-                    };
-                }
-                return null;
-            })
-            .filter(s => s && s.mode === mode);
-    } catch (error) {
-        console.error('Error loading scenarios:', error);
-        return [];
-    }
-}
-
-// Load charades words
-async function loadCharadesWords() {
-    try {
-        const response = await fetch('assets/charades.txt');
-        const text = await response.text();
-        return text.split('\n')
-            .filter(line => line.trim() && !line.startsWith('#'));
-    } catch (error) {
-        console.error('Error loading charades words:', error);
-        return ['Dog', 'Cat', 'Pizza', 'Dance', 'Sing'];
-    }
-}
-
-// Load misfit words
-async function loadMisfitWords() {
-    try {
-        const response = await fetch('assets/misfit.txt');
-        const text = await response.text();
-        return text.split('\n')
-            .filter(line => line.trim() && !line.startsWith('#'));
-    } catch (error) {
-        console.error('Error loading misfit words:', error);
-        return ['Apple', 'Banana', 'Ocean', 'Mountain', 'Pizza'];
-    }
-}
-
-console.log('Config loaded');
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script src="config.js"></script>
+    <script src="home.js"></script>
+</body>
+</html>
