@@ -2,6 +2,9 @@
 (function() {
     console.log('mobile.js loaded');
 
+    // Clear any old localStorage data from previous version
+    localStorage.removeItem('pwa-prompt-dismissed');
+
     // Check if mobile device
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
