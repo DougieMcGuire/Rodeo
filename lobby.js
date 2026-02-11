@@ -71,30 +71,11 @@ database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
     console.log('Players updated:', players);
     
     if (!players) {
-        console.log('No players in room');
-        
-        // Set a 3 minute timer to delete the room if still empty
-        database.ref('rooms/' + roomCode).update({
-            emptyAt: firebase.database.ServerValue.TIMESTAMP
-        });
-        
-        // Schedule cleanup in 3 minutes
-        setTimeout(() => {
-            database.ref('rooms/' + roomCode + '/players').once('value', (checkSnapshot) => {
-                if (!checkSnapshot.exists()) {
-                    console.log('Room still empty after 3 minutes, deleting');
-                    database.ref('rooms/' + roomCode).remove();
-                }
-            });
-        }, 3 * 60 * 1000); // 3 minutes
-        
+        console.log('No players in room, redirecting home');
         clearCurrentRoom();
         window.location.href = 'index.html';
         return;
     }
-    
-    // Players exist, clear empty timer
-    database.ref('rooms/' + roomCode + '/emptyAt').remove();
     
     // Convert to array and sort by join order
     const playersArray = Object.values(players).sort((a, b) => a.joinOrder - b.joinOrder);
@@ -163,18 +144,6 @@ leaveBtn.addEventListener('click', async () => {
         console.error('Error leaving:', error);
         clearCurrentRoom();
         window.location.href = 'index.html';
-    }
-});
-
-// Handle tab close / page unload - remove player automatically
-window.addEventListener('beforeunload', () => {
-    // Use sendBeacon for reliable cleanup on page close
-    if (isHost) {
-        // Host leaving = delete room
-        database.ref('rooms/' + roomCode).remove();
-    } else {
-        // Regular player = just remove them
-        database.ref('rooms/' + roomCode + '/players/' + playerData.playerId).remove();
     }
 });
 
