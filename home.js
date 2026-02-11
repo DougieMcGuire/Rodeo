@@ -89,8 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
         codeInput.value = joinCode.substring(0, 3) + ' ' + joinCode.substring(3);
     }
 
-    // Host button
-    hostBtn.addEventListener('click', async () => {
+    // Host button - just go to game select, don't create room yet
+    hostBtn.addEventListener('click', () => {
         console.log('HOST clicked');
         const name = nameInput.value.trim();
         
@@ -107,58 +107,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        hostBtn.disabled = true;
-        hostBtn.textContent = 'CREATING...';
-
-        try {
-            console.log('Creating room...');
-            const playerId = generateId();
-            console.log('Player ID:', playerId);
-            
-            let avatarUrl = playerData?.avatarUrl;
-
-            // Upload new avatar if selected
-            if (selectedFile) {
-                console.log('Uploading avatar...');
-                avatarUrl = await uploadAvatar(playerId, selectedFile);
-                console.log('Avatar uploaded:', avatarUrl);
-            }
-
-            // Save player data
-            savePlayerData(playerId, name, avatarUrl);
-            console.log('Player data saved');
-
-            // Create room
-            const roomCode = generateRoomCode();
-            console.log('Room code:', roomCode);
-            
-            await database.ref('rooms/' + roomCode).set({
-                hostId: playerId,
-                state: 'game_select',
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            console.log('Room created');
-
-            // Add player to room
-            await database.ref('rooms/' + roomCode + '/players/' + playerId).set({
-                playerId: playerId,
-                name: name,
-                avatarUrl: avatarUrl,
-                joinOrder: 1,
-                joinedAt: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            console.log('Room created successfully!');
-            setCurrentRoom(roomCode);
-            window.location.href = `game-select.html?room=${roomCode}`;
-
-        } catch (error) {
-            console.error('Error creating room:', error);
-            alert('Failed to create room: ' + error.message);
-            hostBtn.disabled = false;
-            hostBtn.textContent = 'HOST';
+        // Save to localStorage for later
+        const tempData = getPlayerData() || {};
+        tempData.name = name;
+        if (avatarPreview.style.display === 'block') {
+            tempData.avatarUrl = avatarPreview.src;
         }
+        localStorage.setItem('playerData', JSON.stringify(tempData));
+        
+        // Go to game select - room will be created when game is chosen
+        window.location.href = 'game-select.html';
     });
 
     // Join button
