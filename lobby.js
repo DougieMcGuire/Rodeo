@@ -25,7 +25,6 @@ roomCodeDisplay.textContent = roomCode.substr(0, 3) + ' ' + roomCode.substr(3);
 
 let isHost = false;
 let hostId = null;
-let hostCheckTimeout = null;
 
 // Listen for room data (game type, mode, host)
 database.ref('rooms/' + roomCode).on('value', (snapshot) => {
@@ -72,11 +71,30 @@ database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
     console.log('Players updated:', players);
     
     if (!players) {
-        console.log('No players, redirecting home');
+        console.log('No players in room');
+        
+        // Set a 3 minute timer to delete the room if still empty
+        database.ref('rooms/' + roomCode).update({
+            emptyAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        // Schedule cleanup in 3 minutes
+        setTimeout(() => {
+            database.ref('rooms/' + roomCode + '/players').once('value', (checkSnapshot) => {
+                if (!checkSnapshot.exists()) {
+                    console.log('Room still empty after 3 minutes, deleting');
+                    database.ref('rooms/' + roomCode).remove();
+                }
+            });
+        }, 3 * 60 * 1000); // 3 minutes
+        
         clearCurrentRoom();
         window.location.href = 'index.html';
         return;
     }
+    
+    // Players exist, clear empty timer
+    database.ref('rooms/' + roomCode + '/emptyAt').remove();
     
     // Convert to array and sort by join order
     const playersArray = Object.values(players).sort((a, b) => a.joinOrder - b.joinOrder);
@@ -88,45 +106,6 @@ database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
         clearCurrentRoom();
         window.location.href = 'index.html';
         return;
-    }
-    
-    // If host left, wait 3 seconds before ending game (gives time for page transitions)
-    const hostStillHere = playersArray.find(p => p.playerId === hostId);
-    if (!hostStillHere && !isHost) {
-        // Clear any existing timeout
-        if (hostCheckTimeout) {
-            clearTimeout(hostCheckTimeout);
-        }
-        
-        console.log('Host not in player list, checking in 3 seconds...');
-        
-        // Wait 3 seconds then check again
-        hostCheckTimeout = setTimeout(() => {
-            database.ref('rooms/' + roomCode + '/players').once('value', (checkSnapshot) => {
-                const currentPlayers = checkSnapshot.val();
-                if (!currentPlayers) {
-                    clearCurrentRoom();
-                    window.location.href = 'index.html';
-                    return;
-                }
-                
-                const playersCheck = Object.values(currentPlayers);
-                const hostCheck = playersCheck.find(p => p.playerId === hostId);
-                
-                if (!hostCheck) {
-                    console.log('Host still gone after 3 seconds, ending game');
-                    clearCurrentRoom();
-                    alert('Host left the game');
-                    window.location.href = 'index.html';
-                }
-            });
-        }, 3000);
-    } else {
-        // Host is here, clear any pending timeout
-        if (hostCheckTimeout) {
-            clearTimeout(hostCheckTimeout);
-            hostCheckTimeout = null;
-        }
     }
     
     // Render players
