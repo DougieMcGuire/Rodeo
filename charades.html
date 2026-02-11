@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charades - RODEO</title>
+    <link rel="icon" href="favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 200vmax;
+            height: 200vmax;
+            transform: translate(-50%, -50%);
+            background: repeating-conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                transparent 2deg,
+                rgba(0, 0, 0, 0.15) 2deg,
+                rgba(0, 0, 0, 0.15) 4deg
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-screen {
+            background: white;
+            border-radius: 30px;
+            padding: 50px 40px;
+            box-shadow: 0 0 0 6px #000, 0 25px 80px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            color: #000;
+            margin-bottom: 30px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .instruction {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 700;
+            max-width: 500px;
+        }
+
+        .countdown {
+            font-size: 6rem;
+            color: #FF3B30;
+            font-weight: 900;
+            margin: 30px 0;
+            text-shadow: 4px 4px 0 #000;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .word-display {
+            background: #FF3B30;
+            padding: 40px;
+            border-radius: 20px;
+            border: 6px solid #000;
+            margin: 30px 0;
+            box-shadow: 10px 10px 0 #000;
+        }
+
+        .word-label {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .word {
+            font-size: 3.5rem;
+            color: white;
+            font-weight: 900;
+            text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+            word-wrap: break-word;
+        }
+
+        .player-info {
+            background: rgba(255, 59, 48, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            border: 4px solid #000;
+            margin: 20px 0;
+        }
+
+        .player-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 5px solid #000;
+            margin-bottom: 15px;
+            box-shadow: 6px 6px 0 rgba(255, 59, 48, 0.3);
+        }
+
+        .player-name {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        .player-status {
+            font-size: 1.3rem;
+            color: #FF3B30;
+            font-weight: 800;
+        }
+
+        .btn {
+            padding: 25px 60px;
+            border: 5px solid #000;
+            border-radius: 15px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 8px 8px 0 #000;
+            margin: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #FF3B30;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 12px 12px 0 #000;
+        }
+
+        .btn-primary:active {
+            transform: translate(4px, 4px);
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #000;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f0f0;
+            transform: translateY(-4px);
+            box-shadow: 12px 12px 0 #000;
+        }
+
+        .rounds-info {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #FF3B30;
+            margin-top: 20px;
+        }
+
+        .game-over {
+            text-align: center;
+        }
+
+        .game-over h2 {
+            font-size: 3rem;
+            margin-bottom: 30px;
+            color: #FF3B30;
+        }
+
+        .players-turns {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            border: 4px solid #000;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .turn-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border: 3px solid #000;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .turn-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid #000;
+        }
+
+        .turn-name {
+            font-weight: 800;
+            flex: 1;
+            text-align: left;
+        }
+
+        .turn-count {
+            color: #FF3B30;
+            font-weight: 800;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 8px solid rgba(255, 255, 255, 0.3);
+            border-top: 8px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .game-screen {
+                padding: 30px 20px;
+            }
+            .word {
+                font-size: 2.5rem;
+            }
+            .countdown {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-screen">
+            <h1 class="game-title">🎭 CHARADES</h1>
+            <div id="gameContent"></div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBaJXCqGmUaGumvcWNE7w4FOOzTJVDH-yg",
+            authDomain: "polorfriends.firebaseapp.com",
+            databaseURL: "https://polorfriends-default-rtdb.firebaseio.com",
+            projectId: "polorfriends",
+            storageBucket: "polorfriends.firebasestorage.app",
+            messagingSenderId: "328546525972",
+            appId: "1:328546525972:web:a6fe0f0a45b4565a7b1801",
+            measurementId: "G-07B4713DQQ"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Utils
+        function getPlayerData() {
+            const data = localStorage.getItem('playerData');
+            return data ? JSON.parse(data) : null;
+        }
+
+        function getCurrentRoom() {
+            return localStorage.getItem('currentRoom');
+        }
+
+        function clearCurrentRoom() {
+            localStorage.removeItem('currentRoom');
+        }
+
+        // Game State
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomCode = urlParams.get('room') || getCurrentRoom();
+        const playerData = getPlayerData();
+
+        if (!roomCode || !playerData) {
+            window.location.href = 'index.html';
+        }
+
+        console.log('Charades loading for room:', roomCode);
+
+        const gameContent = document.getElementById('gameContent');
+        
+        let players = [];
+        let isHost = false;
+        let currentTurn = 0;
+        let playerTurns = {}; // Track how many turns each player has had
+        let currentWord = '';
+        let countdownInterval = null;
+        let words = [
+            'Giraffe', 'Elephant', 'Kangaroo', 'Penguin', 'Octopus', 'Butterfly',
+            'Astronaut', 'Cowboy', 'Pirate', 'Ninja', 'Chef', 'Doctor',
+            'Basketball', 'Soccer', 'Swimming', 'Skiing', 'Dancing', 'Singing',
+            'Pizza', 'Hamburger', 'Sushi', 'Ice cream', 'Taco', 'Donut',
+            'Airplane', 'Rocket', 'Bicycle', 'Submarine', 'Helicopter', 'Train',
+            'Laughing', 'Crying', 'Sleeping', 'Running', 'Flying', 'Eating',
+            'Birthday', 'Wedding', 'Halloween', 'Christmas', 'Concert', 'Graduation'
+        ];
+
+        // Listen for room and players
+        database.ref('rooms/' + roomCode).on('value', (snapshot) => {
+            const room = snapshot.val();
+            if (!room) {
+                clearCurrentRoom();
+                window.location.href = 'index.html';
+                return;
+            }
+            isHost = (room.hostId === playerData.playerId);
+        });
+
+        database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
+            const playersData = snapshot.val();
+            if (!playersData) {
+                clearCurrentRoom();
+                window.location.href = 'index.html';
+                return;
+            }
+            players = Object.values(playersData).sort((a, b) => a.joinOrder - b.joinOrder);
+            
+            // Initialize turn counts
+            players.forEach(p => {
+                if (!playerTurns[p.playerId]) {
+                    playerTurns[p.playerId] = 0;
+                }
+            });
+        });
+
+        // Listen for game state
+        database.ref('rooms/' + roomCode + '/charadesState').on('value', (snapshot) => {
+            const state = snapshot.val();
+            
+            if (!state) {
+                // Initialize game
+                if (isHost) {
+                    initGame();
+                } else {
+                    showLoading();
+                }
+            } else {
+                renderGameState(state);
+            }
+        });
+
+        async function initGame() {
+            console.log('Host initializing game...');
+            
+            // Pick first player randomly
+            const firstPlayer = players[Math.floor(Math.random() * players.length)];
+            
+            await database.ref('rooms/' + roomCode + '/charadesState').set({
+                phase: 'countdown',
+                currentPlayerId: firstPlayer.playerId,
+                currentWord: '',
+                countdownFrom: 5,
+                turns: {}
+            });
+        }
+
+        function renderGameState(state) {
+            console.log('Rendering state:', state.phase);
+            
+            if (state.phase === 'countdown') {
+                showCountdown(state);
+            } else if (state.phase === 'playing') {
+                showWord(state);
+            } else if (state.phase === 'waiting') {
+                showWaiting(state);
+            } else if (state.phase === 'gameover') {
+                showGameOver(state);
+            }
+        }
+
+        function showLoading() {
+            gameContent.innerHTML = `
+                <div class="spinner"></div>
+                <p class="instruction">Waiting for game to start...</p>
+            `;
+        }
+
+        function showCountdown(state) {
+            const currentPlayer = players.find(p => p.playerId === state.currentPlayerId);
+            const isCurrentPlayer = (state.currentPlayerId === playerData.playerId);
+            
+            if (isCurrentPlayer) {
+                gameContent.innerHTML = `
+                    <p class="instruction">Get ready! In <span id="countdownNum">${state.countdownFrom}</span> seconds, a word will appear on YOUR screen. Act it out for the others!</p>
+                    <div class="countdown" id="countdownDisplay">${state.countdownFrom}</div>
+                    <p class="instruction" style="color: #FF3B30; font-size: 1.5rem;">⚠️ FACE YOUR PHONE AWAY FROM YOU!</p>
+                `;
+                
+                // Start countdown
+                if (isHost && state.countdownFrom > 0) {
+                    setTimeout(() => {
+                        const newCount = state.countdownFrom - 1;
+                        if (newCount > 0) {
+                            database.ref('rooms/' + roomCode + '/charadesState').update({
+                                countdownFrom: newCount
+                            });
+                        } else {
+                            // Pick random word and replace {player} if needed
+                            let word = words[Math.floor(Math.random() * words.length)];
+                            if (word === '{player}') {
+                                const otherPlayers = players.filter(p => p.playerId !== state.currentPlayerId);
+                                const randomPlayer = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+                                word = randomPlayer.name;
+                            }
+                            
+                            database.ref('rooms/' + roomCode + '/charadesState').update({
+                                phase: 'playing',
+                                currentWord: word
+                            });
+                        }
+                    }, 1000);
+                }
+            } else {
+                gameContent.innerHTML = `
+                    <div class="player-info">
+                        <img src="${currentPlayer.avatarUrl}" class="player-avatar">
+                        <div class="player-name">${currentPlayer.name}</div>
+                        <div class="player-status">is getting ready...</div>
+                    </div>
+                    <div class="countdown">${state.countdownFrom}</div>
+                `;
+            }
+        }
+
+        function showWord(state) {
+            const currentPlayer = players.find(p => p.playerId === state.currentPlayerId);
+            const isCurrentPlayer = (state.currentPlayerId === playerData.playerId);
+            
+            if (isCurrentPlayer) {
+                gameContent.innerHTML = `
+                    <p class="instruction">Act this out for everyone!</p>
+                    <div class="word-display">
+                        <div class="word-label">THE WORD IS...</div>
+                        <div class="word">${state.currentWord}</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="nextTurn()">DONE</button>
+                `;
+            } else {
+                gameContent.innerHTML = `
+                    <div class="player-info">
+                        <img src="${currentPlayer.avatarUrl}" class="player-avatar">
+                        <div class="player-name">${currentPlayer.name}</div>
+                        <div class="player-status">is acting!</div>
+                    </div>
+                    <p class="instruction">Guess what they're acting out!</p>
+                `;
+            }
+        }
+
+        async function nextTurn() {
+            if (!isHost) return;
+            
+            // Increment current player's turn count
+            const currentPlayerId = (await database.ref('rooms/' + roomCode + '/charadesState/currentPlayerId').once('value')).val();
+            const turns = (await database.ref('rooms/' + roomCode + '/charadesState/turns').once('value')).val() || {};
+            
+            turns[currentPlayerId] = (turns[currentPlayerId] || 0) + 1;
+            
+            // Check if everyone has had 3 turns
+            const allPlayersHave3Turns = players.every(p => (turns[p.playerId] || 0) >= 3);
+            
+            if (allPlayersHave3Turns) {
+                // Game over
+                await database.ref('rooms/' + roomCode + '/charadesState').update({
+                    phase: 'gameover',
+                    turns: turns
+                });
+            } else {
+                // Pick next player who hasn't had 3 turns yet
+                const availablePlayers = players.filter(p => (turns[p.playerId] || 0) < 3);
+                const nextPlayer = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
+                
+                await database.ref('rooms/' + roomCode + '/charadesState').update({
+                    phase: 'countdown',
+                    currentPlayerId: nextPlayer.playerId,
+                    countdownFrom: 5,
+                    turns: turns
+                });
+            }
+        }
+        
+        window.nextTurn = nextTurn;
+
+        function showGameOver(state) {
+            let turnsList = '';
+            players.forEach(p => {
+                const count = (state.turns && state.turns[p.playerId]) || 0;
+                turnsList += `
+                    <div class="turn-item">
+                        <img src="${p.avatarUrl}" class="turn-avatar">
+                        <span class="turn-name">${p.name}</span>
+                        <span class="turn-count">${count}/3 turns</span>
+                    </div>
+                `;
+            });
+            
+            gameContent.innerHTML = `
+                <div class="game-over">
+                    <h2>🎭 GAME OVER!</h2>
+                    <p class="instruction">Everyone had 3 turns!</p>
+                    <div class="players-turns">${turnsList}</div>
+                    <button class="btn btn-primary" onclick="backToLobby()">BACK TO LOBBY</button>
+                </div>
+            `;
+        }
+
+        async function backToLobby() {
+            if (isHost) {
+                await database.ref('rooms/' + roomCode).update({
+                    state: 'lobby'
+                });
+                await database.ref('rooms/' + roomCode + '/charadesState').remove();
+            }
+            window.location.href = `lobby.html?room=${roomCode}`;
+        }
+        
+        window.backToLobby = backToLobby;
+
+        console.log('Charades initialized');
+    </script>
+</body>
+</html>
