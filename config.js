@@ -2,6 +2,7 @@
 const firebaseConfig = {
     apiKey: "AIzaSyBaJXCqGmUaGumvcWNE7w4FOOzTJVDH-yg",
     authDomain: "polorfriends.firebaseapp.com",
+    databaseURL: "https://polorfriends-default-rtdb.firebaseio.com",
     projectId: "polorfriends",
     storageBucket: "polorfriends.firebasestorage.app",
     messagingSenderId: "328546525972",
@@ -11,8 +12,10 @@ const firebaseConfig = {
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const database = firebase.database();
 const storage = firebase.storage();
+
+console.log('Firebase initialized with Realtime Database');
 
 // Utility functions
 function generateId() {
@@ -31,6 +34,7 @@ function getPlayerData() {
 function savePlayerData(playerId, name, avatarUrl) {
     const data = { playerId, name, avatarUrl };
     localStorage.setItem('playerData', JSON.stringify(data));
+    console.log('Saved player data:', data);
     return data;
 }
 
@@ -113,4 +117,4 @@ async function loadMisfitWords() {
     }
 }
 
-console.log('Firebase config loaded');
+console.log('Config loaded');
