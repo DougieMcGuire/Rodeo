@@ -13,7 +13,6 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
-const storage = firebase.storage();
 
 console.log('Firebase initialized with Realtime Database');
 
@@ -48,23 +47,6 @@ function setCurrentRoom(roomCode) {
 
 function clearCurrentRoom() {
     localStorage.removeItem('currentRoom');
-}
-
-async function uploadAvatar(playerId, file) {
-    try {
-        const fileExt = file.name ? file.name.split('.').pop() : 'jpg';
-        const fileName = `avatars/${playerId}.${fileExt}`;
-        
-        const storageRef = storage.ref(fileName);
-        const snapshot = await storageRef.put(file);
-        const downloadURL = await snapshot.ref.getDownloadURL();
-        
-        console.log('Upload successful:', downloadURL);
-        return downloadURL;
-    } catch (error) {
-        console.error('Upload error:', error);
-        throw error;
-    }
 }
 
 // Load scenarios
