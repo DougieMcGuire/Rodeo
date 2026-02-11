@@ -1,10 +1,18 @@
-// Supabase Configuration
-// Replace these with your actual Supabase credentials from https://app.supabase.com
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyBaJXCqGmUaGumvcWNE7w4FOOzTJVDH-yg",
+    authDomain: "polorfriends.firebaseapp.com",
+    projectId: "polorfriends",
+    storageBucket: "polorfriends.firebasestorage.app",
+    messagingSenderId: "328546525972",
+    appId: "1:328546525972:web:a6fe0f0a45b4565a7b1801",
+    measurementId: "G-07B4713DQQ"
+};
 
-const SUPABASE_URL = 'https://chwcuafifndfjtncrugx.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNod2N1YWZpZm5kZmp0bmNydWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5MDY5MzEsImV4cCI6MjA1MjQ4MjkzMX0.AvXHqQtqmQG9oO4PBWLJ1n3krcZRbvWl3WDc0w1LfTg';
-
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
 
 // Utility functions
 function generateId() {
@@ -40,19 +48,13 @@ function clearCurrentRoom() {
 
 async function uploadAvatar(playerId, file) {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${playerId}.${fileExt}`;
+    const fileName = `avatars/${playerId}.${fileExt}`;
     
-    const { data, error } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, { upsert: true });
+    const storageRef = storage.ref(fileName);
+    const snapshot = await storageRef.put(file);
+    const downloadURL = await snapshot.ref.getDownloadURL();
     
-    if (error) throw error;
-    
-    const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-    
-    return publicUrl;
+    return downloadURL;
 }
 
 // Load scenarios
@@ -110,3 +112,5 @@ async function loadMisfitWords() {
         return ['Apple', 'Banana', 'Ocean', 'Mountain', 'Pizza'];
     }
 }
+
+console.log('Firebase config loaded');
