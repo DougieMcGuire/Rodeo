@@ -24,7 +24,9 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
 document.querySelectorAll('.game-card').forEach(card => {
     card.addEventListener('click', async () => {
         const gameType = card.dataset.game;
-        card.style.opacity = '0.5';
+        
+        // Disable all cards while processing
+        document.querySelectorAll('.game-card').forEach(c => c.style.pointerEvents = 'none');
         
         try {
             console.log('Creating room for game:', gameType);
@@ -50,6 +52,8 @@ document.querySelectorAll('.game-card').forEach(card => {
             // Save updated player data with real uploaded URL
             savePlayerData(playerId, playerData.name, avatarUrl);
             
+            console.log('Creating room in database...');
+            
             // Create room with game info
             await database.ref('rooms/' + roomCode).set({
                 hostId: playerId,
@@ -59,7 +63,7 @@ document.querySelectorAll('.game-card').forEach(card => {
                 createdAt: firebase.database.ServerValue.TIMESTAMP
             });
             
-            console.log('Room created');
+            console.log('Room created in database');
 
             // Add player to room
             await database.ref('rooms/' + roomCode + '/players/' + playerId).set({
@@ -82,12 +86,14 @@ document.querySelectorAll('.game-card').forEach(card => {
             });
 
             setCurrentRoom(roomCode);
+            console.log('Redirecting to lobby...');
             window.location.href = `lobby.html?room=${roomCode}`;
 
         } catch (error) {
-            console.error('Error creating room:', error);
-            alert('Failed to select game: ' + error.message);
-            card.style.opacity = '1';
+            console.error('FULL ERROR:', error);
+            alert('Error: ' + error.message + '\n\nCheck console for details.');
+            // Re-enable cards
+            document.querySelectorAll('.game-card').forEach(c => c.style.pointerEvents = 'auto');
         }
     });
 });
