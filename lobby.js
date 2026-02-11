@@ -1,231 +1,100 @@
-// Lobby screen logic
-document.addEventListener('DOMContentLoaded', async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomCode = urlParams.get('room') || localStorage.getItem('currentRoom');
+// Lobby logic
+console.log('lobby.js loaded');
 
-    if (!roomCode) {
+const urlParams = new URLSearchParams(window.location.search);
+const roomCode = urlParams.get('room') || getCurrentRoom();
+const playerData = getPlayerData();
+
+if (!roomCode || !playerData) {
+    console.error('Missing room or player data');
+    window.location.href = 'index.html';
+}
+
+console.log('Room code:', roomCode);
+console.log('Player data:', playerData);
+
+// UI Elements
+const roomCodeDisplay = document.getElementById('roomCode');
+const playersList = document.getElementById('playersList');
+const startGameBtn = document.getElementById('startGameBtn');
+const hostControls = document.getElementById('hostControls');
+const leaveBtn = document.getElementById('leaveBtn');
+
+// Display room code
+roomCodeDisplay.textContent = roomCode.substr(0, 3) + ' ' + roomCode.substr(3);
+
+// Listen for players
+database.ref('rooms/' + roomCode + '/players').on('value', (snapshot) => {
+    const players = snapshot.val();
+    console.log('Players updated:', players);
+    
+    if (!players) {
+        console.log('No players, redirecting home');
         window.location.href = 'index.html';
         return;
     }
-
-    const currentPlayer = getCurrentPlayer();
-    if (!currentPlayer.playerId) {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    const roomCodeDisplay = document.getElementById('roomCodeDisplay');
-    const playersList = document.getElementById('playersList');
-    const playerCount = document.getElementById('playerCount');
-    const startGameBtn = document.getElementById('startGameBtn');
-    const leaveBtn = document.getElementById('leaveBtn');
-    const waitingMessage = document.getElementById('waitingMessage');
-    const showQrBtn = document.getElementById('showQrBtn');
-    const qrModal = document.getElementById('qrModal');
-    const closeQrBtn = document.getElementById('closeQrBtn');
-    const qrCodeDiv = document.getElementById('qrCode');
-
-    let isHost = false;
-    let players = [];
-
-    // Display room code formatted
-    roomCodeDisplay.textContent = roomCode.slice(0, 3) + ' ' + roomCode.slice(3);
-
-    // QR Code functionality
-    showQrBtn.addEventListener('click', () => {
-        qrModal.style.display = 'flex';
-        // Clear previous QR code
-        qrCodeDiv.innerHTML = '';
-        // Generate new QR code with the join URL
-        const joinUrl = window.location.origin + window.location.pathname.replace('lobby.html', 'index.html') + '?join=' + roomCode;
-        new QRCode(qrCodeDiv, {
-            text: joinUrl,
-            width: 256,
-            height: 256,
-            colorDark: '#000000',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.H
-        });
-    });
-
-    closeQrBtn.addEventListener('click', () => {
-        qrModal.style.display = 'none';
-    });
-
-    qrModal.addEventListener('click', (e) => {
-        if (e.target === qrModal) {
-            qrModal.style.display = 'none';
-        }
-    });
-
-    // Load initial room data
-    await loadRoomData();
-
-    // Subscribe to player changes
-    const playersChannel = supabase
-        .channel(`room-${roomCode}`)
-        .on('postgres_changes', 
-            { 
-                event: '*', 
-                schema: 'public', 
-                table: 'players',
-                filter: `room_id=eq.${roomCode}`
-            }, 
-            (payload) => {
-                console.log('Player change:', payload);
-                loadRoomData();
-            }
-        )
-        .on('postgres_changes',
-            {
-                event: 'UPDATE',
-                schema: 'public',
-                table: 'rooms',
-                filter: `id=eq.${roomCode}`
-            },
-            (payload) => {
-                console.log('Room state change:', payload);
-                if (payload.new.state === 'submission') {
-                    // Game started, redirect to game
-                    window.location.href = `game.html?room=${roomCode}`;
-                }
-            }
-        )
-        .subscribe();
-
-    // Load room data
-    async function loadRoomData() {
-        try {
-            // Get room info
-            const { data: room, error: roomError } = await supabase
-                .from('rooms')
-                .select('*')
-                .eq('id', roomCode)
-                .single();
-
-            if (roomError) throw roomError;
-
-            // Check if current player is host
-            isHost = room.host_id === currentPlayer.playerId;
-
-            // Get players
-            const { data: playersData, error: playersError } = await supabase
-                .from('players')
-                .select('*')
-                .eq('room_id', roomCode)
-                .order('created_at', { ascending: true });
-
-            if (playersError) throw playersError;
-
-            players = playersData;
-            renderPlayers();
-
-            // Show start button if host
-            if (isHost) {
-                startGameBtn.style.display = 'block';
-                waitingMessage.style.display = 'none';
-                startGameBtn.disabled = players.length < 2;
-            } else {
-                startGameBtn.style.display = 'none';
-                waitingMessage.style.display = 'block';
-            }
-
-        } catch (error) {
-            console.error('Error loading room data:', error);
-        }
-    }
-
+    
+    // Convert to array and sort by join order
+    const playersArray = Object.values(players).sort((a, b) => a.joinOrder - b.joinOrder);
+    
     // Render players
-    function renderPlayers() {
-        playerCount.textContent = players.length;
-        playersList.innerHTML = '';
-
-        players.forEach(player => {
-            const playerCard = document.createElement('div');
-            playerCard.className = 'player-card';
-            
-            // Get room data to check host
-            supabase
-                .from('rooms')
-                .select('host_id')
-                .eq('id', roomCode)
-                .single()
-                .then(({ data }) => {
-                    if (data && data.host_id === player.player_id) {
-                        playerCard.classList.add('is-host');
-                    }
-                });
-
-            playerCard.innerHTML = `
-                <img src="${player.avatar_url}" alt="${player.name}" class="player-avatar">
-                <div class="player-info">
-                    <div class="player-name">
-                        ${player.name}
-                        ${player.player_id === currentPlayer.playerId ? '(You)' : ''}
-                    </div>
-                </div>
-            `;
-
-            playersList.appendChild(playerCard);
-        });
+    playersList.innerHTML = '';
+    playersArray.forEach(player => {
+        const playerCard = document.createElement('div');
+        playerCard.className = 'player-card';
+        if (player.isHost) {
+            playerCard.classList.add('is-host');
+        }
+        
+        playerCard.innerHTML = `
+            <img src="${player.avatarUrl}" alt="${player.name}" class="player-avatar-small">
+            <span class="player-name">${player.name}</span>
+            ${player.isHost ? '<span class="host-badge">HOST</span>' : ''}
+        `;
+        
+        playersList.appendChild(playerCard);
+    });
+    
+    // Show start button if current player is host
+    const currentPlayer = playersArray.find(p => p.playerId === playerData.playerId);
+    if (currentPlayer && currentPlayer.isHost) {
+        hostControls.style.display = 'block';
     }
-
-    // Start game
-    startGameBtn.addEventListener('click', async () => {
-        if (players.length < 2) {
-            alert('Need at least 2 players to start');
-            return;
-        }
-
-        try {
-            startGameBtn.disabled = true;
-            startGameBtn.textContent = 'Starting...';
-
-            // Update room state to submission
-            const { error } = await supabase
-                .from('rooms')
-                .update({ state: 'submission' })
-                .eq('id', roomCode);
-
-            if (error) throw error;
-
-            // All players will be redirected via realtime subscription
-            window.location.href = `game.html?room=${roomCode}`;
-
-        } catch (error) {
-            console.error('Error starting game:', error);
-            alert('Failed to start game');
-            startGameBtn.disabled = false;
-            startGameBtn.textContent = 'Start Game';
-        }
-    });
-
-    // Leave game
-    leaveBtn.addEventListener('click', async () => {
-        if (confirm('Are you sure you want to leave?')) {
-            try {
-                // Remove player from room
-                await supabase
-                    .from('players')
-                    .delete()
-                    .eq('room_id', roomCode)
-                    .eq('player_id', currentPlayer.playerId);
-
-                // If host, delete room
-                if (isHost) {
-                    await supabase
-                        .from('rooms')
-                        .delete()
-                        .eq('id', roomCode);
-                }
-
-                localStorage.removeItem('currentRoom');
-                window.location.href = 'index.html';
-
-            } catch (error) {
-                console.error('Error leaving room:', error);
-                window.location.href = 'index.html';
-            }
-        }
-    });
 });
+
+// Start game button
+startGameBtn.addEventListener('click', async () => {
+    try {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = 'STARTING...';
+        
+        // Update room state to playing
+        await database.ref('rooms/' + roomCode).update({
+            state: 'playing'
+        });
+        
+        window.location.href = `game.html?room=${roomCode}`;
+    } catch (error) {
+        console.error('Error starting game:', error);
+        alert('Failed to start game');
+        startGameBtn.disabled = false;
+        startGameBtn.textContent = 'START GAME';
+    }
+});
+
+// Leave button
+leaveBtn.addEventListener('click', async () => {
+    if (confirm('Are you sure you want to leave?')) {
+        try {
+            // Remove player from room
+            await database.ref('rooms/' + roomCode + '/players/' + playerData.playerId).remove();
+            clearCurrentRoom();
+            window.location.href = 'index.html';
+        } catch (error) {
+            console.error('Error leaving:', error);
+            window.location.href = 'index.html';
+        }
+    }
+});
+
+console.log('lobby.js initialized');
