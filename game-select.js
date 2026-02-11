@@ -25,22 +25,11 @@ document.querySelectorAll('.game-card').forEach(card => {
         
         try {
             // Update room with game type and mode
-            await supabase
-                .from('rooms')
-                .update({ 
-                    game_mode: selectedMode,
-                    state: 'lobby'
-                })
-                .eq('id', roomCode);
-
-            // Initialize game state
-            await supabase
-                .from('game_state')
-                .upsert({
-                    room_id: roomCode,
-                    game_type: gameType,
-                    current_data: {}
-                });
+            await db.collection('rooms').doc(roomCode).update({
+                gameMode: selectedMode,
+                state: 'lobby',
+                gameType: gameType
+            });
 
             window.location.href = `lobby.html?room=${roomCode}`;
         } catch (error) {
@@ -53,8 +42,8 @@ document.querySelectorAll('.game-card').forEach(card => {
 // Back button
 document.getElementById('backToHomeBtn').addEventListener('click', async () => {
     try {
-        // Delete room and players
-        await supabase.from('rooms').delete().eq('id', roomCode);
+        // Delete room
+        await db.collection('rooms').doc(roomCode).delete();
         clearCurrentRoom();
         window.location.href = 'index.html';
     } catch (error) {
