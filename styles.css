@@ -1,4 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Black+Ops+One&family=Fredoka:wght@600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@600;700;900&display=swap');
+
+/* ============================= */
+/* RESET */
+/* ============================= */
 
 * {
     margin: 0;
@@ -18,7 +22,10 @@ body {
     position: relative;
 }
 
-/* COMIC BURST BACKGROUND */
+/* ============================= */
+/* CHAOTIC COMIC BURST BACKGROUND */
+/* ============================= */
+
 body::before {
     content: '';
     position: fixed;
@@ -38,6 +45,10 @@ body::before {
     to { transform: rotate(360deg); }
 }
 
+/* ============================= */
+/* CONTAINER */
+/* ============================= */
+
 .container {
     width: 100%;
     max-width: 600px;
@@ -45,19 +56,25 @@ body::before {
     z-index: 2;
 }
 
+/* ============================= */
 /* MAIN CARD */
+/* ============================= */
+
 .home-screen {
     background: #111;
     border-radius: 30px;
     padding: 50px 40px;
+    border: 4px solid #FF2E2E;
     box-shadow:
         0 0 0 6px #000,
         0 0 40px rgba(255, 46, 46, 0.6),
         12px 12px 0 #000;
-    border: 4px solid #FF2E2E;
 }
 
+/* ============================= */
 /* TITLE */
+/* ============================= */
+
 .app-title {
     font-family: 'Bangers', cursive;
     font-size: 4.5rem;
@@ -85,7 +102,46 @@ body::before {
     text-transform: uppercase;
 }
 
+/* ============================= */
+/* MENUS */
+/* ============================= */
+
+.menu-section {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    animation: fadeIn 0.4s ease;
+}
+
+.hidden {
+    display: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.menu-title {
+    text-align: center;
+    color: #FF2E2E;
+    font-size: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 900;
+    text-shadow: 3px 3px 0 #000;
+}
+
+/* ============================= */
 /* INPUTS */
+/* ============================= */
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .input-group label {
     font-weight: 900;
     color: #FF2E2E;
@@ -110,26 +166,14 @@ input[type="text"]:focus {
     transform: translateY(-2px);
 }
 
-/* AVATAR */
-.avatar-upload-btn {
-    padding: 18px;
-    border-radius: 14px;
-    border: 3px dashed #FF2E2E;
-    background: #1a1a1a;
-    color: #FF2E2E;
-    font-weight: 900;
-    cursor: pointer;
-    box-shadow: 6px 6px 0 #000;
-    transition: 0.2s;
+input::placeholder {
+    color: #888;
 }
 
-.avatar-upload-btn:hover {
-    background: #FF2E2E;
-    color: white;
-    transform: translateY(-4px);
-}
-
+/* ============================= */
 /* BUTTONS */
+/* ============================= */
+
 .btn {
     padding: 22px;
     border-radius: 16px;
@@ -148,7 +192,7 @@ input[type="text"]:focus {
     box-shadow: 4px 4px 0 #000;
 }
 
-/* PRIMARY - HOST */
+/* PRIMARY */
 .btn-primary {
     background: linear-gradient(145deg, #FF2E2E, #B11226);
     color: white;
@@ -160,7 +204,7 @@ input[type="text"]:focus {
     box-shadow: 12px 12px 0 #000;
 }
 
-/* SECONDARY - JOIN */
+/* SECONDARY */
 .btn-secondary {
     background: white;
     color: #B11226;
@@ -175,7 +219,46 @@ input[type="text"]:focus {
     transform: translateY(-6px);
 }
 
+/* GAME BUTTONS */
+.game-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.btn-game {
+    background: linear-gradient(145deg, #FF2E2E, #B11226);
+    color: white;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.btn-game:hover {
+    transform: translateY(-6px);
+    box-shadow: 12px 12px 0 #000;
+}
+
+/* ============================= */
 /* DIVIDER */
+/* ============================= */
+
+.divider {
+    text-align: center;
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 3px;
+    background: #FF2E2E;
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
 .divider span {
     background: #111;
     color: #FF2E2E;
@@ -183,19 +266,21 @@ input[type="text"]:focus {
     font-weight: 900;
 }
 
-/* LOADING */
-.spinner {
-    border: 6px solid #222;
-    border-top: 6px solid #FF2E2E;
-    box-shadow: 0 0 20px #FF2E2E;
-}
-
+/* ============================= */
 /* RESPONSIVE */
+/* ============================= */
+
 @media (max-width: 600px) {
     .home-screen {
         padding: 35px 25px;
     }
+
     .app-title {
         font-size: 3.2rem;
+    }
+
+    .btn {
+        font-size: 1rem;
+        padding: 18px;
     }
 }
