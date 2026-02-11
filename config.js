@@ -10,11 +10,16 @@ const firebaseConfig = {
     measurementId: "G-07B4713DQQ"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+// Wait for Firebase to load
+if (typeof firebase === 'undefined') {
+    console.error('Firebase not loaded yet!');
+} else {
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    console.log('Firebase initialized with Realtime Database');
+}
 
-console.log('Firebase initialized with Realtime Database');
+const database = firebase.database();
 
 // Utility functions
 function generateId() {
