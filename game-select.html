@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Game - RODEO</title>
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div id="gameSelectScreen" class="game-select-screen">
+            <h1 class="game-select-title">Choose a Game</h1>
+            
+            <div class="mode-selector">
+                <button class="mode-btn" data-mode="family">Family</button>
+                <button class="mode-btn active" data-mode="friends">Friends</button>
+                <button class="mode-btn" data-mode="freaky">Freaky</button>
+                <button class="mode-btn" data-mode="party">Party</button>
+            </div>
+
+            <div class="games-grid">
+                <div class="game-card" data-game="truth-or-dare">
+                    <h3>🤠 Truth or Dare</h3>
+                    <p>Everyone submits truths and dares for each other</p>
+                </div>
+
+                <div class="game-card" data-game="charades">
+                    <h3>🎭 Charades</h3>
+                    <p>Act out random words without speaking</p>
+                </div>
+
+                <div class="game-card" data-game="would-you-rather">
+                    <h3>🤔 Would You Rather</h3>
+                    <p>Choose between two difficult scenarios</p>
+                </div>
+
+                <div class="game-card" data-game="wavelength">
+                    <h3>📡 Wavelength</h3>
+                    <p>One person guesses based on clues from others</p>
+                </div>
+
+                <div class="game-card" data-game="roulette">
+                    <h3>🎰 Roulette</h3>
+                    <p>Random player gets a random dare</p>
+                </div>
+
+                <div class="game-card" data-game="misfit">
+                    <h3>🕵️ Misfit</h3>
+                    <p>Find the imposter with a different word</p>
+                </div>
+            </div>
+
+            <button class="btn back-btn" id="backToHomeBtn">Back</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="game-select.js"></script>
+</body>
+</html>
