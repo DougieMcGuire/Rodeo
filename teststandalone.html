@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Standalone Test</title>
+
+<!-- Make it feel like a standalone app -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background: #222;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior: none;
+  }
+  button {
+    padding: 15px 30px;
+    margin: 10px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #ff3b30;
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<h1>Standalone Test Page</h1>
+<p id="mode">Checking mode...</p>
+
+<button onclick="vibrateTest()">Vibrate Device</button>
+<button onclick="fullscreenTest()">Toggle Fullscreen</button>
+<button onclick="alertOrientation()">Check Orientation</button>
+
+<script>
+  // Detect if running standalone
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  document.getElementById('mode').innerText = isStandalone ? "Running in Standalone Mode ✅" : "Running in Safari Tab ❌";
+
+  // Vibration test
+  function vibrateTest() {
+    if (navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]); // vibrate pattern
+      alert("Vibrated! 🎵");
+    } else {
+      alert("Vibration not supported 😢");
+    }
+  }
+
+  // Fullscreen test (try to simulate)
+  function fullscreenTest() {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen();
+    } else {
+      alert("Fullscreen API not supported");
+    }
+  }
+
+  // Orientation test
+  function alertOrientation() {
+    const orientation = window.screen.orientation ? window.screen.orientation.type : window.orientation;
+    alert("Current orientation: " + orientation);
+  }
+
+  // Prevent pinch-zoom / double-tap zoom
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  document.addEventListener('touchmove', e => e.preventDefault(), {passive: false});
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, false);
+</script>
+
+</body>
+</html>
