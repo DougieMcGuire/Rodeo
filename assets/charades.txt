@@ -1,0 +1,140 @@
+# Charades Words
+
+Giraffe
+Elephant
+Kangaroo
+Penguin
+Octopus
+Butterfly
+Dinosaur
+Unicorn
+Dragon
+Zombie
+Vampire
+Superhero
+Astronaut
+Cowboy
+Pirate
+Ninja
+Chef
+Doctor
+Teacher
+Dancer
+Singer
+Basketball
+Football
+Soccer
+Tennis
+Swimming
+Skiing
+Surfing
+Bowling
+Golf
+Pizza
+Hamburger
+Spaghetti
+Sushi
+Taco
+Ice cream
+Popcorn
+Donut
+Pancake
+Burrito
+Airplane
+Helicopter
+Submarine
+Rocket
+Bicycle
+Motorcycle
+Skateboard
+Train
+Boat
+Car
+iPhone
+Computer
+Camera
+Microwave
+Refrigerator
+Television
+Guitar
+Piano
+Drums
+Trumpet
+Violin
+Movie theater
+Beach
+Mountain
+Desert
+Forest
+City
+Park
+Mall
+Restaurant
+School
+Library
+Hospital
+Bank
+Police station
+Fire station
+Airport
+Hotel
+Gym
+Church
+Museum
+Zoo
+Laughing
+Crying
+Sleeping
+Dancing
+Running
+Jumping
+Swimming
+Flying
+Eating
+Drinking
+Singing
+Screaming
+Whispering
+Snoring
+Yawning
+Sneezing
+Coughing
+Winking
+Clapping
+Hugging
+Birthday party
+Wedding
+Concert
+Halloween
+Christmas
+New Year
+Thanksgiving
+Easter
+Valentine's Day
+Graduation
+Sleeping Beauty
+Snow White
+Cinderella
+Beauty and the Beast
+The Little Mermaid
+Lion King
+Frozen
+Toy Story
+Finding Nemo
+Shrek
+Harry Potter
+Star Wars
+Marvel
+Batman
+Superman
+Spider-Man
+Titanic
+Jurassic Park
+The Avengers
+Game of Thrones
+Stranger Things
+Squid Game
+Breaking Bad
+The Office
+Friends
+{player}
