@@ -48,6 +48,14 @@ database.ref('rooms/' + roomCode).on('value', (snapshot) => {
         console.log('Host ID:', hostId);
         console.log('Current player ID:', playerData.playerId);
         console.log('Is host:', isHost);
+        console.log('Room state:', room.state);
+        
+        // If room state changed to playing, redirect everyone to game
+        if (room.state === 'playing') {
+            console.log('Game starting! Redirecting to game screen...');
+            window.location.href = `game.html?room=${roomCode}`;
+            return;
+        }
         
         // Update game info display
         const gameNames = {
