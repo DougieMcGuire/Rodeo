@@ -2,98 +2,70 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Rodeo - Enter The Arena</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RODEO - Party Games</title>
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="container">
+        <!-- Home Screen -->
+        <div id="homeScreen" class="home-screen">
+            <img src="assets/wordmark.png" alt="RODEO" class="wordmark">
+            
+            <div class="profile-section">
+                <div class="avatar-upload" id="avatarUpload">
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    <div class="avatar-circle">
+                        <svg class="avatar-placeholder" id="avatarPlaceholder" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="8" r="4"/>
+                            <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
+                        </svg>
+                        <img id="avatarPreview" class="avatar-preview" style="display: none;">
+                    </div>
+                    <div class="edit-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </div>
+                </div>
 
-<div class="container">
-    <div class="home-screen">
-
-        <h1 class="app-title">🤠 RODEO</h1>
-        <p class="tagline">ENTER THE ARENA</p>
-
-        <!-- MAIN MENU -->
-        <div id="mainMenu" class="menu-section">
-            <button class="btn btn-primary" id="showHostBtn">HOST GAME</button>
-
-            <div class="divider"><span>OR</span></div>
-
-            <button class="btn btn-secondary" id="showJoinBtn">JOIN GAME</button>
-        </div>
-
-        <!-- HOST MENU -->
-        <div id="hostMenu" class="menu-section hidden">
-            <h2 class="menu-title">Choose Your Game</h2>
-
-            <div class="game-list">
-                <button class="btn btn-game" data-game="truth">Truth Or Dare</button>
-                <button class="btn btn-game" data-game="hotseat">Hot Seat</button>
-                <button class="btn btn-game" data-game="mostlikely">Most Likely To</button>
+                <input 
+                    type="text" 
+                    id="nameInput" 
+                    class="name-input" 
+                    placeholder="enter name here"
+                    maxlength="20"
+                >
             </div>
 
-            <button class="btn btn-secondary" id="backFromHost">Back</button>
+            <button class="btn btn-primary" id="joinBtn">JOIN</button>
+            <button class="btn" id="hostBtn">HOST</button>
         </div>
-
-        <!-- JOIN MENU -->
-        <div id="joinMenu" class="menu-section hidden">
-
-            <div class="input-group">
-                <label for="playerName">Your Name</label>
-                <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
-            </div>
-
-            <div class="input-group">
-                <label for="roomCode">Room Code</label>
-                <input type="text" id="roomCode" placeholder="123 456" maxlength="7">
-            </div>
-
-            <button class="btn btn-primary" id="joinGameBtn">Enter Arena</button>
-
-            <button class="btn btn-secondary" id="backFromJoin">Back</button>
-        </div>
-
     </div>
-</div>
 
-<script>
-const mainMenu = document.getElementById("mainMenu");
-const hostMenu = document.getElementById("hostMenu");
-const joinMenu = document.getElementById("joinMenu");
+    <!-- Join Code Modal -->
+    <div id="joinModal" class="modal">
+        <div class="modal-content">
+            <h2>Enter Room Code</h2>
+            <input 
+                type="text" 
+                id="codeInput" 
+                class="code-input" 
+                placeholder="123 456"
+                maxlength="7"
+                inputmode="numeric"
+            >
+            <div class="modal-buttons">
+                <button class="btn btn-small btn-cancel" id="cancelJoinBtn">Cancel</button>
+                <button class="btn btn-small btn-primary" id="submitJoinBtn">Join</button>
+            </div>
+        </div>
+    </div>
 
-document.getElementById("showHostBtn").onclick = () => {
-    mainMenu.classList.add("hidden");
-    hostMenu.classList.remove("hidden");
-};
-
-document.getElementById("showJoinBtn").onclick = () => {
-    mainMenu.classList.add("hidden");
-    joinMenu.classList.remove("hidden");
-};
-
-document.getElementById("backFromHost").onclick = () => {
-    hostMenu.classList.add("hidden");
-    mainMenu.classList.remove("hidden");
-};
-
-document.getElementById("backFromJoin").onclick = () => {
-    joinMenu.classList.add("hidden");
-    mainMenu.classList.remove("hidden");
-};
-
-document.querySelectorAll(".btn-game").forEach(btn => {
-    btn.addEventListener("click", () => {
-        const game = btn.dataset.game;
-        alert("Hosting: " + game);
-        // Replace alert with your Supabase host logic
-    });
-});
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
-<script src="app.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="home.js"></script>
 </body>
 </html>
