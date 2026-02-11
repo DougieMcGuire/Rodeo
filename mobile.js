@@ -1,18 +1,19 @@
-// mobile.js - Full iOS Safari native web app experience
+// mobile.js - Fullscreen native iOS web app, fixed zoom & keyboard issues
 (function() {
     console.log('mobile.js loaded');
 
     const isMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (!isMobile) return;
 
-    // Add native webapp class
+    // Add class to apply full native-webapp styles
     document.documentElement.classList.add("native-webapp");
 
     const style = document.createElement("style");
     style.textContent = `
-        /* Fullscreen layout with safe areas */
+        /* Fullscreen layout with safe areas, no Safari header/footer */
         html.native-webapp, html.native-webapp body {
             height: 100%;
+            width: 100%;
             margin: 0;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
             overscroll-behavior: none;
@@ -21,17 +22,19 @@
             color: white;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             scroll-behavior: smooth;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow: hidden;
         }
 
-        /* Headers and footers match app background */
+        /* Remove default Safari header/footer space */
         html.native-webapp header,
         html.native-webapp footer {
-            background: inherit;
-            color: white;
-            box-shadow: none;
+            display: none;
         }
 
-        /* Disable selection & highlight globally */
+        /* Text selection disabled globally */
         html.native-webapp * {
             -webkit-user-select: none;
             user-select: none;
@@ -39,12 +42,13 @@
             -webkit-touch-callout: none;
         }
 
-        /* Enable selection for inputs only */
+        /* Enable selection for inputs */
         html.native-webapp input,
         html.native-webapp textarea {
             -webkit-user-select: text;
             user-select: text;
             color: black;
+            font-size: 16px; /* Prevent zoom when typing */
         }
 
         /* Buttons and links feel native */
@@ -74,10 +78,9 @@
             overscroll-behavior: none;
         }
 
-        /* Optional: subtle modal blur effect */
-        .modal-backdrop {
-            backdrop-filter: blur(8px);
-            background: rgba(0,0,0,0.3);
+        /* Prevent keyboard from zooming in */
+        input, textarea, select {
+            font-size: 16px !important;
         }
     `;
     document.head.appendChild(style);
@@ -96,21 +99,5 @@
     document.addEventListener('gesturechange', e => e.preventDefault());
     document.addEventListener('gestureend', e => e.preventDefault());
 
-    // ---------------------------
-    // Optional: smooth navigation transitions
-    // ---------------------------
-    document.querySelectorAll('a').forEach(a => {
-        a.addEventListener('click', e => {
-            // Simple fade transition effect
-            const href = a.getAttribute('href');
-            if (href && href.startsWith('/')) {
-                e.preventDefault();
-                document.body.style.transition = 'opacity 0.3s ease';
-                document.body.style.opacity = 0;
-                setTimeout(() => window.location.href = href, 300);
-            }
-        });
-    });
-
-    console.log('iOS Safari native web app mode applied!');
+    console.log('iOS Safari native fullscreen mode applied!');
 })();
