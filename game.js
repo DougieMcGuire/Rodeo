@@ -42,6 +42,13 @@ database.ref('rooms/' + roomCode).on('value', (snapshot) => {
     console.log('Game mode:', gameMode);
     console.log('Is host:', isHost);
     
+    // Redirect to specific game page
+    if (gameType === 'charades') {
+        console.log('Redirecting to charades...');
+        window.location.href = `charades.html?room=${roomCode}`;
+        return;
+    }
+    
     // Update title
     const gameNames = {
         'truth-or-dare': '🤠 Truth or Dare',
