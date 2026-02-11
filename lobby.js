@@ -53,7 +53,14 @@ database.ref('rooms/' + roomCode).on('value', (snapshot) => {
         // If room state changed to playing, redirect everyone to game
         if (room.state === 'playing') {
             console.log('Game starting! Redirecting to game screen...');
-            window.location.href = `game.html?room=${roomCode}`;
+            
+            // Redirect to specific game page based on game type
+            if (room.gameType === 'charades') {
+                console.log('Redirecting to charades...');
+                window.location.href = `charades.html?room=${roomCode}`;
+            } else {
+                window.location.href = `game.html?room=${roomCode}`;
+            }
             return;
         }
         
