@@ -38,6 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Save name to localStorage as user types
+    nameInput.addEventListener('input', () => {
+        const currentData = getPlayerData() || {};
+        currentData.name = nameInput.value;
+        localStorage.setItem('playerData', JSON.stringify(currentData));
+    });
+
     // Avatar upload
     avatarUpload.addEventListener('click', () => {
         console.log('Avatar clicked');
@@ -54,6 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 avatarPlaceholder.style.display = 'none';
                 avatarPreview.src = event.target.result;
                 avatarPreview.style.display = 'block';
+                
+                // Save preview to localStorage immediately
+                const currentData = getPlayerData() || {};
+                currentData.avatarUrl = event.target.result;
+                localStorage.setItem('playerData', JSON.stringify(currentData));
             };
             reader.readAsDataURL(file);
         }
