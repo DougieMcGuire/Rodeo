@@ -51,14 +51,20 @@ function clearCurrentRoom() {
 }
 
 async function uploadAvatar(playerId, file) {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `avatars/${playerId}.${fileExt}`;
-    
-    const storageRef = storage.ref(fileName);
-    const snapshot = await storageRef.put(file);
-    const downloadURL = await snapshot.ref.getDownloadURL();
-    
-    return downloadURL;
+    try {
+        const fileExt = file.name ? file.name.split('.').pop() : 'jpg';
+        const fileName = `avatars/${playerId}.${fileExt}`;
+        
+        const storageRef = storage.ref(fileName);
+        const snapshot = await storageRef.put(file);
+        const downloadURL = await snapshot.ref.getDownloadURL();
+        
+        console.log('Upload successful:', downloadURL);
+        return downloadURL;
+    } catch (error) {
+        console.error('Upload error:', error);
+        throw error;
+    }
 }
 
 // Load scenarios
