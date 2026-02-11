@@ -132,21 +132,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const roomCode = generateRoomCode();
             console.log('Room code:', roomCode);
             
-            await db.collection('rooms').doc(roomCode).set({
+            await database.ref('rooms/' + roomCode).set({
                 hostId: playerId,
                 state: 'game_select',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: firebase.database.ServerValue.TIMESTAMP
             });
 
             console.log('Room created');
 
             // Add player to room
-            await db.collection('rooms').doc(roomCode).collection('players').doc(playerId).set({
+            await database.ref('rooms/' + roomCode + '/players/' + playerId).set({
                 playerId: playerId,
                 name: name,
                 avatarUrl: avatarUrl,
                 joinOrder: 1,
-                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                joinedAt: firebase.database.ServerValue.TIMESTAMP
             });
 
             console.log('Room created successfully!');
@@ -202,13 +202,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Checking room:', code);
             
             // Check if room exists
-            const roomDoc = await db.collection('rooms').doc(code).get();
+            const roomSnapshot = await database.ref('rooms/' + code).once('value');
             
-            if (!roomDoc.exists) {
+            if (!roomSnapshot.exists()) {
                 throw new Error('Room not found');
             }
 
-            const room = roomDoc.data();
+            const room = roomSnapshot.val();
             console.log('Room found:', room);
 
             const playerId = generateId();
@@ -224,20 +224,17 @@ document.addEventListener('DOMContentLoaded', () => {
             savePlayerData(playerId, name, avatarUrl);
 
             // Get current player count for join order
-            const playersSnapshot = await db.collection('rooms').doc(code).collection('players')
-                .orderBy('joinOrder', 'desc')
-                .limit(1)
-                .get();
-
-            const joinOrder = playersSnapshot.empty ? 1 : playersSnapshot.docs[0].data().joinOrder + 1;
+            const playersSnapshot = await database.ref('rooms/' + code + '/players').once('value');
+            const players = playersSnapshot.val() || {};
+            const joinOrder = Object.keys(players).length + 1;
 
             // Add player to room
-            await db.collection('rooms').doc(code).collection('players').doc(playerId).set({
+            await database.ref('rooms/' + code + '/players/' + playerId).set({
                 playerId: playerId,
                 name: name,
                 avatarUrl: avatarUrl,
                 joinOrder: joinOrder,
-                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                joinedAt: firebase.database.ServerValue.TIMESTAMP
             });
 
             console.log('Joined successfully!');
