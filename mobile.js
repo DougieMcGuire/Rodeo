@@ -13,11 +13,9 @@
     console.log('Is mobile:', isMobile);
     console.log('Is standalone:', isStandalone);
 
-    // Store in localStorage if user dismissed the prompt
-    const hasSeenPrompt = localStorage.getItem('pwa-prompt-dismissed');
-
-    if (isMobile && !isStandalone && !hasSeenPrompt) {
-        // Show the prompt
+    // ALWAYS show prompt on mobile if not standalone (removed localStorage check)
+    if (isMobile && !isStandalone) {
+        // Show the prompt every time
         showInstallPrompt();
     } else if (isStandalone) {
         // Make it feel like a native app
@@ -192,28 +190,24 @@
 
             .pwa-skip-btn {
                 margin-top: 20px;
-                padding: 15px 40px;
-                background: white;
-                border: 4px solid #000;
-                border-radius: 12px;
-                font-size: 1rem;
-                font-weight: 800;
+                padding: 8px 20px;
+                background: transparent;
+                border: none;
+                font-size: 0.75rem;
+                font-weight: 600;
                 cursor: pointer;
-                text-transform: uppercase;
-                box-shadow: 5px 5px 0 #000;
-                transition: all 0.2s;
+                color: #999;
+                text-decoration: underline;
             }
 
             .pwa-skip-btn:active {
-                transform: translate(2px, 2px);
-                box-shadow: 3px 3px 0 #000;
+                opacity: 0.5;
             }
         `;
         document.head.appendChild(style);
 
-        // Expose dismiss function globally
+        // Expose dismiss function globally - just removes overlay, doesn't save to localStorage
         window.dismissInstallPrompt = function() {
-            localStorage.setItem('pwa-prompt-dismissed', 'true');
             overlay.remove();
         };
     }
