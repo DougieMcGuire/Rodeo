@@ -2,60 +2,98 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>Rodeo - Enter The Arena</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rodeo - Party Games</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="home-screen">
-            <img src="assets/wordmark.png" alt="RODEO" class="wordmark" onerror="this.style.display='none'; document.querySelector('.app-title').style.display='block'">
-            <h1 class="app-title" style="display: none;">🤠 RODEO</h1>
-            <p class="tagline">Party games with friends</p>
-            
-            <div class="setup-section">
-                <div class="input-group">
-                    <label for="playerName">Your Name</label>
-                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
-                </div>
 
-                <div class="input-group">
-                    <label for="avatarUpload">Profile Picture</label>
-                    <div class="avatar-upload-container">
-                        <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
-                        <button type="button" class="avatar-upload-btn" id="avatarUploadBtn">
-                            <span id="uploadBtnText">Choose Photo</span>
-                        </button>
-                        <div id="avatarPreview" class="avatar-preview" style="display: none;">
-                            <img id="previewImg" src="" alt="Avatar preview">
-                        </div>
-                    </div>
-                </div>
+<div class="container">
+    <div class="home-screen">
 
-                <button class="btn btn-primary" id="hostGameBtn">Host Game</button>
+        <h1 class="app-title">🤠 RODEO</h1>
+        <p class="tagline">ENTER THE ARENA</p>
 
-                <div class="divider">
-                    <span>OR</span>
-                </div>
+        <!-- MAIN MENU -->
+        <div id="mainMenu" class="menu-section">
+            <button class="btn btn-primary" id="showHostBtn">HOST GAME</button>
 
-                <div class="input-group">
-                    <label for="roomCode">Room Code</label>
-                    <input type="text" id="roomCode" placeholder="123 456" maxlength="7" inputmode="numeric">
-                </div>
+            <div class="divider"><span>OR</span></div>
 
-                <button class="btn btn-secondary" id="joinGameBtn">Join Game</button>
-            </div>
-
-            <div id="loadingMessage" class="loading-message" style="display: none;">
-                <div class="spinner"></div>
-                <p id="loadingText">Setting up...</p>
-            </div>
+            <button class="btn btn-secondary" id="showJoinBtn">JOIN GAME</button>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
-    <script src="app.js"></script>
+        <!-- HOST MENU -->
+        <div id="hostMenu" class="menu-section hidden">
+            <h2 class="menu-title">Choose Your Game</h2>
+
+            <div class="game-list">
+                <button class="btn btn-game" data-game="truth">Truth Or Dare</button>
+                <button class="btn btn-game" data-game="hotseat">Hot Seat</button>
+                <button class="btn btn-game" data-game="mostlikely">Most Likely To</button>
+            </div>
+
+            <button class="btn btn-secondary" id="backFromHost">Back</button>
+        </div>
+
+        <!-- JOIN MENU -->
+        <div id="joinMenu" class="menu-section hidden">
+
+            <div class="input-group">
+                <label for="playerName">Your Name</label>
+                <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+            </div>
+
+            <div class="input-group">
+                <label for="roomCode">Room Code</label>
+                <input type="text" id="roomCode" placeholder="123 456" maxlength="7">
+            </div>
+
+            <button class="btn btn-primary" id="joinGameBtn">Enter Arena</button>
+
+            <button class="btn btn-secondary" id="backFromJoin">Back</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const mainMenu = document.getElementById("mainMenu");
+const hostMenu = document.getElementById("hostMenu");
+const joinMenu = document.getElementById("joinMenu");
+
+document.getElementById("showHostBtn").onclick = () => {
+    mainMenu.classList.add("hidden");
+    hostMenu.classList.remove("hidden");
+};
+
+document.getElementById("showJoinBtn").onclick = () => {
+    mainMenu.classList.add("hidden");
+    joinMenu.classList.remove("hidden");
+};
+
+document.getElementById("backFromHost").onclick = () => {
+    hostMenu.classList.add("hidden");
+    mainMenu.classList.remove("hidden");
+};
+
+document.getElementById("backFromJoin").onclick = () => {
+    joinMenu.classList.add("hidden");
+    mainMenu.classList.remove("hidden");
+};
+
+document.querySelectorAll(".btn-game").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const game = btn.dataset.game;
+        alert("Hosting: " + game);
+        // Replace alert with your Supabase host logic
+    });
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+
 </body>
 </html>
