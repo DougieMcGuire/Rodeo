@@ -120,34 +120,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const roomCode = generateRoomCode();
             console.log('Room code:', roomCode);
             
-            const { error: roomError } = await supabase
-                .from('rooms')
-                .insert({
-                    id: roomCode,
-                    host_id: playerId,
-                    state: 'game_select'
-                });
+            await db.collection('rooms').doc(roomCode).set({
+                hostId: playerId,
+                state: 'game_select',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
 
-            if (roomError) {
-                console.error('Room error:', roomError);
-                throw roomError;
-            }
+            console.log('Room created');
 
             // Add player to room
-            const { error: playerError } = await supabase
-                .from('players')
-                .insert({
-                    room_id: roomCode,
-                    player_id: playerId,
-                    name: name,
-                    avatar_url: avatarUrl,
-                    join_order: 1
-                });
-
-            if (playerError) {
-                console.error('Player error:', playerError);
-                throw playerError;
-            }
+            await db.collection('rooms').doc(roomCode).collection('players').doc(playerId).set({
+                playerId: playerId,
+                name: name,
+                avatarUrl: avatarUrl,
+                joinOrder: 1,
+                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
 
             console.log('Room created successfully!');
             setCurrentRoom(roomCode);
@@ -200,17 +188,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             console.log('Checking room:', code);
+            
             // Check if room exists
-            const { data: room, error: roomError } = await supabase
-                .from('rooms')
-                .select('*')
-                .eq('id', code)
-                .single();
-
-            if (roomError || !room) {
+            const roomDoc = await db.collection('rooms').doc(code).get();
+            
+            if (!roomDoc.exists) {
                 throw new Error('Room not found');
             }
 
+            const room = roomDoc.data();
             console.log('Room found:', room);
 
             const playerId = generateId();
@@ -226,27 +212,21 @@ document.addEventListener('DOMContentLoaded', () => {
             savePlayerData(playerId, name, avatarUrl);
 
             // Get current player count for join order
-            const { data: players } = await supabase
-                .from('players')
-                .select('join_order')
-                .eq('room_id', code)
-                .order('join_order', { ascending: false })
-                .limit(1);
+            const playersSnapshot = await db.collection('rooms').doc(code).collection('players')
+                .orderBy('joinOrder', 'desc')
+                .limit(1)
+                .get();
 
-            const joinOrder = players && players.length > 0 ? players[0].join_order + 1 : 1;
+            const joinOrder = playersSnapshot.empty ? 1 : playersSnapshot.docs[0].data().joinOrder + 1;
 
             // Add player to room
-            const { error: playerError } = await supabase
-                .from('players')
-                .insert({
-                    room_id: code,
-                    player_id: playerId,
-                    name: name,
-                    avatar_url: avatarUrl,
-                    join_order: joinOrder
-                });
-
-            if (playerError) throw playerError;
+            await db.collection('rooms').doc(code).collection('players').doc(playerId).set({
+                playerId: playerId,
+                name: name,
+                avatarUrl: avatarUrl,
+                joinOrder: joinOrder,
+                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
 
             console.log('Joined successfully!');
             setCurrentRoom(code);
