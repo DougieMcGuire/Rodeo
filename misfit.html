@@ -475,6 +475,8 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 // ─── Words List (pairs of similar words) ───
+// TODO: Load from assets/misfit_words.txt in production
+// Format in file: WORD1|WORD2 (one pair per line)
 const WORD_PAIRS = [
     ["PIZZA", "PASTA"],
     ["BURGER", "HOTDOG"],
@@ -644,6 +646,17 @@ function renderViewing(state) {
         <div class="word-box">
             <div class="word-label">YOUR WORD</div>
             <div class="word-text">${myWord}</div>
+        </div>
+        
+        <div style="background: white; padding: 20px; border: 5px solid #000; border-radius: 15px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); width: 100%; margin-top: 10px;">
+            <div style="font-size: 1.1rem; font-weight: 800; text-transform: uppercase; margin-bottom: 15px; text-align: center;">📋 How To Play</div>
+            <div style="font-size: 0.95rem; line-height: 1.6; color: #333;">
+                <strong>1.</strong> Everyone has a word. One person has a different (but similar) word - they're the <strong>Misfit</strong>.<br><br>
+                <strong>2.</strong> Nobody knows who the Misfit is (not even them!).<br><br>
+                <strong>3.</strong> Each player says <strong>ONE WORD</strong> that describes their word.<br><br>
+                <strong>4.</strong> After everyone describes, vote on who you think is the Misfit.<br><br>
+                <strong>5.</strong> If you need more clues, vote "Need More Evidence" for another round!
+            </div>
         </div>
         
         ${isHost ? `
