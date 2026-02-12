@@ -90,11 +90,19 @@
     function enableIframeNavigation() {
         console.log('Enabling iframe navigation for standalone app...');
 
+        // Detect the base path (e.g., /Rodeo/)
+        const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+        console.log('Base path:', basePath);
+
         // Create fullscreen iframe container if not on index.html
-        if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
+        const isIndex = window.location.pathname.endsWith('index.html') || 
+                       window.location.pathname === '/' ||
+                       window.location.pathname === basePath;
+        
+        if (!isIndex) {
             console.log('Not on index, redirecting to index with iframe...');
             const targetPage = window.location.pathname + window.location.search;
-            window.location.href = '/index.html?iframe=' + encodeURIComponent(targetPage);
+            window.location.href = basePath + 'index.html?iframe=' + encodeURIComponent(targetPage);
             return;
         }
 
@@ -113,16 +121,34 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
+                height: 100vh;
+                height: -webkit-fill-available;
                 border: none;
                 z-index: 999999;
                 background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
             `;
+            
+            // Hide address bar by scrolling
+            iframe.onload = function() {
+                window.scrollTo(0, 1);
+                setTimeout(() => window.scrollTo(0, 1), 100);
+                setTimeout(() => window.scrollTo(0, 1), 500);
+            };
+            
             document.body.appendChild(iframe);
             
             // Hide original content
             document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.height = '100%';
             const container = document.querySelector('.container');
             if (container) container.style.display = 'none';
+            
+            // Force hide address bar
+            setTimeout(() => {
+                window.scrollTo(0, 1);
+            }, 100);
         }
 
         // Intercept all navigation in standalone mode
@@ -132,51 +158,54 @@
 
             // Check if navigation is happening
             const href = target.getAttribute('href');
-            const onclick = target.getAttribute('onclick');
             
             if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
                 e.preventDefault();
-                console.log('Intercepted navigation to:', href);
-                loadInIframe(href);
+                e.stopPropagation();
+                console.log('Intercepted click to:', href);
+                
+                // Build full URL if relative
+                let fullUrl = href;
+                if (!href.startsWith('http') && !href.startsWith('/')) {
+                    fullUrl = basePath + href;
+                }
+                
+                loadInIframe(fullUrl);
             }
         }, true);
 
-        // Intercept window.location changes
-        const originalLocationSetter = Object.getOwnPropertyDescriptor(window, 'location').set;
-        Object.defineProperty(window, 'location', {
-            set: function(url) {
-                if (typeof url === 'string' && !url.includes('index.html')) {
-                    console.log('Intercepted location.href to:', url);
-                    loadInIframe(url);
-                    return;
-                }
-                originalLocationSetter.call(window, url);
-            },
-            get: function() {
-                return window.location;
-            }
-        });
+        // Intercept form submissions
+        document.addEventListener('submit', (e) => {
+            e.preventDefault();
+        }, true);
 
-        // Override window.location.href
-        let currentHref = window.location.href;
-        Object.defineProperty(window.location, 'href', {
-            get: function() {
-                return currentHref;
-            },
-            set: function(url) {
-                if (!url.includes('index.html') && !url.startsWith('#')) {
-                    console.log('Intercepted location.href =', url);
-                    loadInIframe(url);
-                    currentHref = url;
-                } else {
-                    currentHref = url;
-                    window.location.replace(url);
-                }
+        // Monitor for window.location changes
+        const originalReplace = window.location.replace;
+        window.location.replace = function(url) {
+            if (!url.includes('index.html') && isStandalone) {
+                console.log('Intercepted location.replace:', url);
+                loadInIframe(url);
+                return;
             }
-        });
+            originalReplace.call(window.location, url);
+        };
+
+        // Create a proxy for window.location.href assignments
+        const iframe = document.getElementById('app-iframe');
+        if (iframe) {
+            // Listen for messages from iframe trying to navigate
+            window.addEventListener('message', (e) => {
+                if (e.data && e.data.type === 'navigate') {
+                    loadInIframe(e.data.url);
+                }
+            });
+        }
 
         function loadInIframe(url) {
             console.log('Loading in iframe:', url);
+            
+            // Prevent address bar from showing
+            window.scrollTo(0, 1);
             
             let iframe = document.getElementById('app-iframe');
             
@@ -190,23 +219,51 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
+                    height: 100vh;
+                    height: -webkit-fill-available;
                     border: none;
                     z-index: 999999;
                     background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
                 `;
+                
+                iframe.onload = function() {
+                    // Force hide address bar when iframe loads
+                    window.scrollTo(0, 1);
+                    setTimeout(() => window.scrollTo(0, 1), 100);
+                    setTimeout(() => window.scrollTo(0, 1), 500);
+                };
+                
                 document.body.appendChild(iframe);
                 
-                // Hide original content
+                // Hide original content and lock body
                 document.body.style.overflow = 'hidden';
+                document.body.style.position = 'fixed';
+                document.body.style.width = '100%';
+                document.body.style.height = '100%';
                 const container = document.querySelector('.container');
                 if (container) container.style.display = 'none';
             }
             
-            iframe.src = url;
+            // Build proper URL
+            let properUrl = url;
+            if (!url.startsWith('http')) {
+                if (url.startsWith('/')) {
+                    properUrl = window.location.origin + url;
+                } else {
+                    properUrl = basePath + url;
+                }
+            }
+            
+            iframe.src = properUrl;
             
             // Update browser URL without reload
-            const newUrl = '/index.html?iframe=' + encodeURIComponent(url);
+            const newUrl = basePath + 'index.html?iframe=' + encodeURIComponent(properUrl);
             window.history.pushState({}, '', newUrl);
+            
+            // Hide address bar
+            setTimeout(() => {
+                window.scrollTo(0, 1);
+            }, 100);
         }
 
         // Handle back button
@@ -215,10 +272,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             const iframePage = urlParams.get('iframe');
             
+            window.scrollTo(0, 1);
+            
             if (!iframePage && iframe) {
                 // Going back to index
                 iframe.remove();
                 document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
+                document.body.style.height = '';
                 const container = document.querySelector('.container');
                 if (container) container.style.display = '';
             } else if (iframePage && iframe) {
@@ -226,6 +288,13 @@
                 iframe.src = iframePage;
             }
         });
+
+        // Continuously hide address bar (aggressive)
+        setInterval(() => {
+            if (document.getElementById('app-iframe')) {
+                window.scrollTo(0, 1);
+            }
+        }, 2000);
 
         console.log('Iframe navigation enabled!');
     }
