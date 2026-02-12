@@ -497,7 +497,7 @@
             
             if (isCurrentPlayer) {
                 gameContent.innerHTML = `
-                    <p class="instruction">Act this out for everyone!</p>
+                    <p class="instruction">Give ${currentPlayer.name} hints to guess the word!</p>
                     <div class="word-display">
                         <div class="word-label">THE WORD IS...</div>
                         <div class="word">${state.currentWord}</div>
@@ -511,7 +511,7 @@
                         <div class="player-name">${currentPlayer.name}</div>
                         <div class="player-status">is acting!</div>
                     </div>
-                    <p class="instruction">Guess what they're acting out!</p>
+                    <p class="instruction">Give ${currentPlayer.name} hints to guess their word!!</p>
                 `;
             }
         }
