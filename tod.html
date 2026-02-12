@@ -660,7 +660,8 @@ function renderState(state) {
 
 // ─── SUBMISSION PHASE ───
 function renderSubmission(state) {
-    const mySubmissions = state.submissions[playerData.playerId] || {};
+    const submissions = state.submissions || {};
+    const mySubmissions = submissions[playerData.playerId] || {};
     const hasSubmitted = mySubmissions.submitted === true;
     
     if (hasSubmitted) {
