@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     <title>RODEO</title>
     <style>
         * { 
@@ -16,37 +14,34 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        html, body { 
+        html { 
             width: 100%; 
             height: 100%; 
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
+            background: transparent;
+            overscroll-behavior: none;
+        }
+        
+        body { 
+            width: 100%; 
+            height: 100%; 
             overflow: hidden; 
             background: transparent;
             position: fixed;
             overscroll-behavior: none;
-            -webkit-overflow-scrolling: touch;
-            padding: 0;
-            margin: 0;
         }
         
         #app { 
             position: fixed; 
             top: 0; 
             left: 0; 
-            right: 0;
-            bottom: 0;
             width: 100%; 
-            height: 100%;
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
-            /* Force iframe to extend into safe areas */
-            padding-bottom: env(safe-area-inset-bottom);
-            margin-bottom: calc(-1 * env(safe-area-inset-bottom));
+            height: 100vh;
+            height: -webkit-fill-available;
             border: none; 
             background: transparent;
-            z-index: 1;
         }
+        
+        /* Popup overlay */
         #prompt { 
             display: none; 
             position: fixed; 
@@ -194,18 +189,16 @@
         // Check if in iframe (Claude editor, etc.)
         const isInIframe = window.self !== window.top;
         
-        // Check if user has seen prompt before (commented out for testing - add back later if needed)
-        // const hasSeenPrompt = localStorage.getItem('rodeo-install-prompt-seen');
-        const hasSeenPrompt = false; // Always show for now
+        // Always show popup for testing
+        const hasSeenPrompt = false;
         
-        // Show prompt ONCE if conditions are met
+        // Show prompt
         function showInstallPrompt() {
             if (!isStandalone && !isInIframe && !hasSeenPrompt) {
                 setTimeout(() => {
                     const prompt = document.getElementById('prompt');
                     if (prompt) {
                         prompt.classList.add('show');
-                        // localStorage.setItem('rodeo-install-prompt-seen', 'true'); // Uncomment to persist
                     }
                 }, 1000);
             }
@@ -227,57 +220,41 @@
         });
         
         // Prevent iOS bounce/overscroll
-        let preventScroll = false;
-        
-        document.addEventListener('touchstart', function(e) {
-            if (e.target.closest('#prompt')) return;
-            preventScroll = true;
-        });
-        
         document.addEventListener('touchmove', function(e) {
-            if (preventScroll && (e.target === document.body || e.target === document.documentElement)) {
+            if (e.target === document.body || e.target === document.documentElement) {
                 e.preventDefault();
             }
         }, { passive: false });
         
-        document.addEventListener('touchend', function() {
-            preventScroll = false;
-        });
-        
         // Initialize
         showInstallPrompt();
         
-        // Dynamically update theme color based on iframe content (for Safari)
-        function updateThemeColor() {
+        // Update Safari theme color dynamically
+        function updateSafariTheme() {
             try {
                 const iframe = document.getElementById('app');
-                if (iframe && iframe.contentWindow) {
-                    const iframeDoc = iframe.contentWindow.document;
-                    const bgColor = window.getComputedStyle(iframeDoc.body).backgroundColor;
-                    
-                    // Update theme-color meta tag
-                    let themeColorMeta = document.querySelector('meta[name="theme-color"]');
-                    if (themeColorMeta && bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
-                        themeColorMeta.setAttribute('content', bgColor);
-                    }
+                const iframeDoc = iframe.contentWindow.document;
+                const bgColor = window.getComputedStyle(iframeDoc.body).backgroundColor;
+                
+                let themeMeta = document.querySelector('meta[name="theme-color"]');
+                if (!themeMeta) {
+                    themeMeta = document.createElement('meta');
+                    themeMeta.name = 'theme-color';
+                    document.head.appendChild(themeMeta);
+                }
+                
+                if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
+                    themeMeta.content = bgColor;
                 }
             } catch (e) {
-                // Cross-origin restriction, ignore
+                // Ignore cross-origin errors
             }
         }
         
-        // Try to update theme color when iframe loads
+        // Update Safari theme when iframe loads
         document.getElementById('app').addEventListener('load', function() {
-            setTimeout(updateThemeColor, 100);
-            setTimeout(updateThemeColor, 500);
-            setTimeout(updateThemeColor, 1000);
-        });
-        
-        // Message from iframe to refresh if needed
-        window.addEventListener('message', function(e) {
-            if (e.data === 'reload') {
-                location.reload();
-            }
+            setTimeout(updateSafariTheme, 100);
+            setTimeout(updateSafariTheme, 500);
         });
     </script>
 </body>
