@@ -23,9 +23,13 @@
         optimizeForMobile();
     }
 
-    // TEMPORARILY: Always show on mobile if not standalone (for debugging)
-    if (isMobile && !isStandalone) {
-        console.log('SHOWING INSTALL PROMPT NOW');
+    // Show install prompt ONLY on index.html if not standalone
+    const isIndexPage = window.location.pathname === '/' || 
+                       window.location.pathname.endsWith('/') ||
+                       window.location.pathname.includes('index.html');
+    
+    if (isMobile && !isStandalone && isIndexPage) {
+        console.log('SHOWING INSTALL PROMPT NOW (index page)');
         setTimeout(() => {
             showInstallPrompt();
         }, 500);
@@ -33,6 +37,7 @@
         console.log('NOT SHOWING PROMPT:');
         console.log('- isMobile:', isMobile);
         console.log('- isStandalone:', isStandalone);
+        console.log('- isIndexPage:', isIndexPage);
     }
 
     // Extra optimizations for standalone mode
