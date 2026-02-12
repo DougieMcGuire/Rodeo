@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Roulette - RODEO</title>
+<title>Truth or Dare - RODEO</title>
 <link rel="icon" href="favicon.ico">
 
 <style>
@@ -11,7 +11,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -48,7 +47,7 @@ body::before {
 
 .app {
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -104,33 +103,201 @@ body::before {
     text-shadow: 3px 3px 0 #000;
 }
 
-/* Hover Name */
-.hover-name {
-    font-size: clamp(1.5rem, 5vw, 2.5rem);
-    font-weight: 900;
+/* Game Title */
+.game-title {
+    font-size: 2.5rem;
+    color: white;
+    text-shadow: 4px 4px 0 #000;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+/* Submission Phase */
+.submission-info {
     background: white;
-    color: #000;
+    padding: 20px;
+    border: 5px solid #000;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.submission-info h3 {
+    font-size: 1.3rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.submission-info p {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.submissions-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.player-submission {
+    background: white;
+    padding: 25px;
+    border: 5px solid #000;
+    border-radius: 15px;
+    box-shadow: 0 6px 0 #000;
+}
+
+.player-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.player-header img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 4px solid #000;
+    object-fit: cover;
+}
+
+.player-header h4 {
+    font-size: 1.4rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-label {
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.input-label.truth {
+    color: #2EAD4B;
+}
+
+.input-label.dare {
+    color: #ff0000;
+}
+
+.submission-input {
+    width: 100%;
+    padding: 15px;
+    border: 4px solid #000;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: white;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.submission-input:focus {
+    outline: none;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.submit-all-btn {
     padding: 20px 40px;
     border: 5px solid #000;
     border-radius: 15px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s;
     text-transform: uppercase;
     letter-spacing: 2px;
-    min-height: 3rem;
+    box-shadow: 0 6px 0 #000, 0 6px 15px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(180deg, rgba(255, 182, 193, 0.95) 0%, rgba(255, 105, 180, 0.95) 100%);
+    width: 100%;
+    color: #000;
+}
+
+.submit-all-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 #000, 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.submit-all-btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 4px 0 #000, 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.submit-all-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Waiting for submissions */
+.waiting-box {
+    background: white;
+    padding: 30px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 100%;
+}
+
+.waiting-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.submission-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.status-dot {
     display: flex;
     align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: #f0f0f0;
+    border: 4px solid #000;
 }
 
-.hover-name.is-you {
-    background: linear-gradient(180deg, rgba(255, 182, 193, 0.95) 0%, rgba(255, 105, 180, 0.95) 100%);
-    transform: scale(1.05);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+.status-dot.submitted {
+    background: #90EE90;
 }
 
-/* Wheel */
-.wheel-wrapper {
+.status-dot img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 3px solid #000;
+    object-fit: cover;
+}
+
+.status-dot .status-name {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #333;
+}
+
+/* Wheel Phase */
+.wheel-container {
     position: relative;
     width: min(85vw, 85vh, 400px);
     aspect-ratio: 1;
@@ -152,7 +319,6 @@ canvas {
     display: block;
 }
 
-/* Center Hub */
 .wheel-hub {
     position: absolute;
     top: 50%;
@@ -170,7 +336,6 @@ canvas {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* Pointer */
 .ticker {
     position: absolute;
     top: -12px;
@@ -185,119 +350,112 @@ canvas {
     z-index: 10;
 }
 
-/* Hold Ring */
-.hold-ring {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
+.selected-player-box {
+    background: white;
+    padding: 30px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
     width: 100%;
 }
 
-.hold-dot {
+.selected-player-name {
+    font-size: 2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    color: #ff0000;
+}
+
+.choice-buttons {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 12px;
-    background: white;
-    border: 4px solid #000;
-    box-shadow: 0 4px 0 #000;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.choice-btn {
+    flex: 1;
+    padding: 30px 20px;
+    border: 5px solid #000;
+    border-radius: 15px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    cursor: pointer;
     transition: all 0.2s;
-}
-
-.hold-dot img {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: 3px solid #000;
-    object-fit: cover;
-}
-
-.hold-dot .dot-name {
-    font-size: 0.9rem;
-    font-weight: 800;
-    color: #666;
     text-transform: uppercase;
-}
-
-.hold-dot.ready {
-    background: #90EE90;
-    transform: translateY(-2px);
     box-shadow: 0 6px 0 #000;
+    position: relative;
 }
 
-.hold-dot.ready .dot-name {
-    color: #000;
+.choice-btn:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 0 #000;
 }
 
-/* Bottom Text */
-.bottom-text {
-    font-weight: 800;
-    color: white;
-    text-transform: uppercase;
-    font-size: 1.2rem;
-    text-shadow: 3px 3px 0 #000;
-    letter-spacing: 1px;
+.choice-btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 4px 0 #000;
 }
 
-/* Winner Overlay */
-.winner-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
+.choice-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
 
-.winner-overlay.show {
-    display: flex;
+.truth-btn {
+    background: linear-gradient(180deg, #90EE90 0%, #7FD87F 100%);
 }
 
-.winner-card {
+.dare-btn {
+    background: linear-gradient(180deg, #FFB6C1 0%, #FF69B4 100%);
+}
+
+.choice-count {
+    display: block;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    font-weight: 700;
+}
+
+/* Challenge Display */
+.challenge-box {
     background: white;
     padding: 40px;
     border: 5px solid #000;
     border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-    max-width: 400px;
     width: 100%;
 }
 
-.winner-avatar {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    border: 5px solid #FFD700;
-    margin: 0 auto 20px;
-    object-fit: cover;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-.winner-label {
-    font-size: 2.5rem;
+.challenge-type {
+    font-size: 1.2rem;
     font-weight: 900;
+    text-transform: uppercase;
     margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
 }
 
-.winner-subtitle {
+.challenge-type.truth {
+    color: #2EAD4B;
+}
+
+.challenge-type.dare {
     color: #ff0000;
-    font-weight: 900;
-    font-size: 1.5rem;
-    margin-bottom: 30px;
-    text-transform: uppercase;
 }
 
-.winner-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+.challenge-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 20px 0;
+    color: #000;
+}
+
+.challenge-for {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 30px;
 }
 
 /* Buttons */
@@ -327,8 +485,8 @@ canvas {
     box-shadow: 0 4px 0 #000, 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-.btn-gold {
-    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+.btn-primary {
+    background: linear-gradient(180deg, rgba(255, 182, 193, 0.95) 0%, rgba(255, 105, 180, 0.95) 100%);
 }
 
 .btn-danger {
@@ -350,48 +508,31 @@ canvas {
     width: auto;
 }
 
+.spin-btn {
+    padding: 25px 60px;
+    font-size: 1.5rem;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
-    .hover-name {
-        font-size: 1.3rem;
-        padding: 15px 30px;
-    }
-
-    .wheel-wrapper {
-        width: min(90vw, 90vh, 350px);
-    }
-
-    .wheel-hub {
-        width: 60px;
-        height: 60px;
-        font-size: 1.5rem;
-    }
-
-    .winner-label {
+    .game-title {
         font-size: 2rem;
     }
 
-    .winner-subtitle {
-        font-size: 1.2rem;
+    .choice-buttons {
+        flex-direction: column;
     }
 
-    .btn {
-        padding: 15px 30px;
-        font-size: 1rem;
+    .challenge-text {
+        font-size: 1.2rem;
     }
 
     .host-controls {
         bottom: 10px;
         right: 10px;
     }
-
-    .host-controls .btn {
-        padding: 10px 20px;
-        font-size: 0.8rem;
-    }
 }
 
-/* Hidden utility */
 .hidden {
     display: none !important;
 }
@@ -400,10 +541,6 @@ canvas {
 <body>
 
 <div class="app" id="app"></div>
-
-<div class="winner-overlay" id="winnerOverlay">
-    <div class="winner-card" id="winnerCard"></div>
-</div>
 
 <div class="host-controls hidden" id="hostControls">
     <button class="btn btn-danger" onclick="endGame()">End Game</button>
@@ -443,12 +580,10 @@ if (!roomCode || !playerData) window.location.href = 'index.html';
 
 let players = [];
 let isHost = false;
-let isHolding = false;
 let currentRotation = 0;
 let animFrameId = null;
 let wheelCanvas, wheelCtx;
 let wheelSize = 0;
-let holdListenerRef = null;
 
 const SEGMENT_COLORS = [
     '#E8453C', '#E8832A', '#D4A72C', '#2EAD4B',
@@ -456,7 +591,6 @@ const SEGMENT_COLORS = [
     '#1D9C8C', '#A86B2D'
 ];
 
-// ─── Init ───
 const app = document.getElementById('app');
 
 function showLoading() {
@@ -466,19 +600,19 @@ function showLoading() {
                 <div class="spinner"></div>
                 <img src="favicon.ico" class="spinner-icon" alt="">
             </div>
-            <div class="loading-text">Loading roulette...</div>
+            <div class="loading-text">Loading game...</div>
         </div>
     `;
 }
 
 showLoading();
 
+// ─── Initialize ───
 database.ref('rooms/' + roomCode).once('value', snap => {
     const room = snap.val();
     if (!room) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
     isHost = (room.hostId === playerData.playerId);
 
-    // Show host controls if host
     if (isHost) {
         document.getElementById('hostControls').classList.remove('hidden');
     }
@@ -487,78 +621,225 @@ database.ref('rooms/' + roomCode).once('value', snap => {
         const pd = snap.val();
         if (!pd) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
         players = Object.values(pd).sort((a, b) => a.joinOrder - b.joinOrder);
+        
         if (isHost) initGame();
         attachGameStateListener();
     });
 });
 
 async function initGame() {
-    await database.ref('rooms/' + roomCode + '/rouletteState').set({
-        phase: 'waiting',
-        holds: {},
-        winnerId: null,
-        rotation: 0
-    });
+    const stateRef = database.ref('rooms/' + roomCode + '/todState');
+    const existingState = await stateRef.once('value');
+    
+    if (!existingState.val()) {
+        await stateRef.set({
+            phase: 'submission',
+            submissions: {},
+            playerChallenges: {},
+            currentPlayer: null,
+            currentChallenge: null
+        });
+        
+        // Initialize player challenges structure
+        const playerChallenges = {};
+        players.forEach(player => {
+            playerChallenges[player.playerId] = {
+                truths: [],
+                dares: [],
+                truthsRemaining: players.length - 1,
+                daresRemaining: players.length - 1
+            };
+        });
+        
+        await database.ref('rooms/' + roomCode + '/todState/playerChallenges').set(playerChallenges);
+    }
 }
 
 function attachGameStateListener() {
-    database.ref('rooms/' + roomCode + '/rouletteState').on('value', snap => {
+    database.ref('rooms/' + roomCode + '/todState').on('value', snap => {
         const state = snap.val();
         if (!state) { showLoading(); return; }
         renderState(state);
     });
 }
 
-// ─── Render ───
-let lastPhase = null;
-
+// ─── Rendering ───
 function renderState(state) {
-    if (state.phase === 'waiting') {
-        document.body.classList.remove('you-selected');
-        hideWinnerOverlay();
-        if (lastPhase !== 'waiting') buildWaitingUI(state);
-        updateHoldDots(state.holds || {});
-    } else if (state.phase === 'spinning') {
-        hideWinnerOverlay();
-        if (lastPhase !== 'spinning') buildSpinningUI(state);
-        triggerSpin(state);
-    } else if (state.phase === 'result') {
-        showResultOverlay(state);
+    if (state.phase === 'submission') {
+        renderSubmission(state);
+    } else if (state.phase === 'wheel') {
+        renderWheel(state);
+    } else if (state.phase === 'selection') {
+        renderSelection(state);
+    } else if (state.phase === 'challenge') {
+        renderChallenge(state);
     }
-    lastPhase = state.phase;
 }
 
-// ─── Waiting UI ───
-function buildWaitingUI(state) {
-    currentRotation = 0;
-    // Clean up old hold listener
-    if (holdListenerRef) {
-        holdListenerRef.off();
-        holdListenerRef = null;
+// ─── SUBMISSION PHASE ───
+function renderSubmission(state) {
+    const submissions = state.submissions || {};
+    const mySubmissions = submissions[playerData.playerId] || {};
+    const hasSubmitted = mySubmissions.submitted === true;
+    
+    if (hasSubmitted) {
+        renderWaitingForSubmissions(state);
+        return;
     }
+    
+    // Get other players
+    const otherPlayers = players.filter(p => p.playerId !== playerData.playerId);
+    
     app.innerHTML = `
-        <div class="hover-name" id="hoverName">&nbsp;</div>
-        <div class="wheel-wrapper" id="wheelWrapper">
+        <div class="game-title">Truth or Dare</div>
+        
+        <div class="submission-info">
+            <h3>📝 Submission Phase</h3>
+            <p>Submit 1 Truth and 1 Dare for each player</p>
+        </div>
+        
+        <div class="submissions-container" id="submissionsContainer">
+            ${otherPlayers.map(player => `
+                <div class="player-submission">
+                    <div class="player-header">
+                        <img src="${player.avatarUrl}" alt="${player.name}">
+                        <h4>${player.name}</h4>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="input-label truth">Truth</div>
+                        <textarea 
+                            class="submission-input" 
+                            id="truth-${player.playerId}"
+                            placeholder="Enter a truth question..."
+                        ></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="input-label dare">Dare</div>
+                        <textarea 
+                            class="submission-input" 
+                            id="dare-${player.playerId}"
+                            placeholder="Enter a dare..."
+                        ></textarea>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <button class="submit-all-btn" onclick="submitAll()">Submit All</button>
+    `;
+}
+
+async function submitAll() {
+    const otherPlayers = players.filter(p => p.playerId !== playerData.playerId);
+    const submissions = {};
+    
+    // Validate all fields are filled
+    for (const player of otherPlayers) {
+        const truth = document.getElementById(`truth-${player.playerId}`).value.trim();
+        const dare = document.getElementById(`dare-${player.playerId}`).value.trim();
+        
+        if (!truth || !dare) {
+            alert('Please fill in all truth and dare fields!');
+            return;
+        }
+        
+        submissions[player.playerId] = { truth, dare };
+    }
+    
+    // Save submissions (anonymously - no author info)
+    await database.ref('rooms/' + roomCode + '/todState/submissions/' + playerData.playerId).set({
+        submitted: true
+    });
+    
+    // Add to player challenges WITHOUT author info
+    for (const targetPlayerId in submissions) {
+        const { truth, dare } = submissions[targetPlayerId];
+        
+        await database.ref('rooms/' + roomCode + '/todState/playerChallenges/' + targetPlayerId + '/truths').push(truth);
+        await database.ref('rooms/' + roomCode + '/todState/playerChallenges/' + targetPlayerId + '/dares').push(dare);
+    }
+    
+    // Check if all submitted
+    checkAllSubmitted();
+}
+
+async function checkAllSubmitted() {
+    if (!isHost) return;
+    
+    const submissions = await database.ref('rooms/' + roomCode + '/todState/submissions').once('value');
+    const submissionsData = submissions.val() || {};
+    
+    const allSubmitted = players.every(p => submissionsData[p.playerId]?.submitted === true);
+    
+    if (allSubmitted) {
+        setTimeout(() => {
+            database.ref('rooms/' + roomCode + '/todState').update({ phase: 'wheel' });
+        }, 1000);
+    }
+}
+
+function renderWaitingForSubmissions(state) {
+    const submissions = state.submissions || {};
+    
+    app.innerHTML = `
+        <div class="game-title">Truth or Dare</div>
+        
+        <div class="waiting-box">
+            <div class="waiting-text">Waiting for all submissions...</div>
+            <div class="submission-status">
+                ${players.map(p => {
+                    const submitted = submissions[p.playerId]?.submitted === true;
+                    return `
+                        <div class="status-dot ${submitted ? 'submitted' : ''}">
+                            <img src="${p.avatarUrl}" alt="">
+                            <span class="status-name">${p.name}</span>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+    
+    // Host checks if all submitted
+    if (isHost) {
+        checkAllSubmitted();
+    }
+}
+
+// ─── WHEEL PHASE ───
+function renderWheel(state) {
+    app.innerHTML = `
+        <div class="game-title">Truth or Dare</div>
+        
+        <div class="wheel-container" id="wheelContainer">
             <div class="ticker"></div>
             <div class="wheel-outer">
                 <canvas id="wheelCanvas"></canvas>
-                <div class="wheel-hub">🎯</div>
+                <div class="wheel-hub">
+                    <img src="favicon.ico" style="width: 40px; height: 40px;" alt="">
+                </div>
             </div>
         </div>
-        <div class="hold-ring" id="holdRing"></div>
-        <div class="bottom-text" id="bottomText">Hold the wheel to spin</div>
+        
+        ${isHost ? `
+            <button class="btn btn-primary spin-btn" onclick="spinWheel()">Spin Wheel</button>
+        ` : `
+            <div class="waiting-box">
+                <div class="waiting-text">Waiting for host to spin...</div>
+            </div>
+        `}
     `;
+    
     initCanvas();
     drawWheel(0);
-    updateHoldDots(state.holds || {});
-    setupWheelHold();
 }
 
-// ─── Canvas ───
 function initCanvas() {
     wheelCanvas = document.getElementById('wheelCanvas');
     if (!wheelCanvas) return;
-    const wrapper = document.getElementById('wheelWrapper');
+    const wrapper = document.getElementById('wheelContainer');
     const dpr = window.devicePixelRatio || 1;
     const rect = wrapper.getBoundingClientRect();
     wheelSize = rect.width - 16;
@@ -586,7 +867,6 @@ function drawWheel(rotation) {
         const endAngle = startAngle + slice;
         const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length];
 
-        // Draw segment
         wheelCtx.beginPath();
         wheelCtx.moveTo(0, 0);
         wheelCtx.arc(0, 0, r, startAngle, endAngle);
@@ -594,7 +874,6 @@ function drawWheel(rotation) {
         wheelCtx.fillStyle = color;
         wheelCtx.fill();
 
-        // Darker edge for depth
         const grad = wheelCtx.createRadialGradient(0, 0, r * 0.6, 0, 0, r);
         grad.addColorStop(0, 'rgba(0,0,0,0)');
         grad.addColorStop(1, 'rgba(0,0,0,0.2)');
@@ -605,7 +884,6 @@ function drawWheel(rotation) {
         wheelCtx.fillStyle = grad;
         wheelCtx.fill();
 
-        // Separator line
         wheelCtx.beginPath();
         wheelCtx.moveTo(0, 0);
         wheelCtx.lineTo(Math.cos(startAngle) * r, Math.sin(startAngle) * r);
@@ -613,14 +891,13 @@ function drawWheel(rotation) {
         wheelCtx.lineWidth = 2;
         wheelCtx.stroke();
 
-        // Text
         wheelCtx.save();
         const midAngle = startAngle + slice / 2;
         wheelCtx.rotate(midAngle);
         wheelCtx.textAlign = 'right';
         wheelCtx.fillStyle = '#fff';
         const fontSize = Math.max(11, Math.min(16, r / (n * 0.55)));
-        wheelCtx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+        wheelCtx.font = `bold ${fontSize}px -apple-system, sans-serif`;
         wheelCtx.shadowColor = 'rgba(0,0,0,0.6)';
         wheelCtx.shadowBlur = 4;
         wheelCtx.shadowOffsetX = 1;
@@ -637,7 +914,7 @@ function drawWheel(rotation) {
     wheelCtx.restore();
 }
 
-function getHoveredPlayer(rotation) {
+function getSelectedPlayer(rotation) {
     const n = players.length;
     const slice = 360 / n;
     let normalizedAngle = (360 - (rotation % 360) + 360) % 360;
@@ -645,206 +922,161 @@ function getHoveredPlayer(rotation) {
     return players[idx];
 }
 
-// ─── Hold Dots ───
-function updateHoldDots(holds) {
-    const ring = document.getElementById('holdRing');
-    if (!ring) return;
-    ring.innerHTML = players.map(p => {
-        const ready = holds[p.playerId] === true;
-        return `
-            <div class="hold-dot ${ready ? 'ready' : ''}">
-                <img src="${p.avatarUrl}" alt="">
-                <span class="dot-name">${p.name}</span>
-            </div>
-        `;
-    }).join('');
-}
-
-// ─── Hold to Spin ───
-function setupWheelHold() {
-    const wrapper = document.getElementById('wheelWrapper');
-    if (!wrapper) return;
-
-    const start = (e) => {
-        e.preventDefault();
-        if (isHolding) return;
-        isHolding = true;
-        wrapper.classList.add('holding');
-        const bt = document.getElementById('bottomText');
-        if (bt) { bt.textContent = 'Holding...'; }
-        database.ref('rooms/' + roomCode + '/rouletteState/holds/' + playerData.playerId).set(true);
-    };
-
-    const end = (e) => {
-        if (e) e.preventDefault();
-        if (!isHolding) return;
-        isHolding = false;
-        wrapper.classList.remove('holding');
-        const bt = document.getElementById('bottomText');
-        if (bt) { bt.textContent = 'Hold the wheel to spin'; }
-        database.ref('rooms/' + roomCode + '/rouletteState/holds/' + playerData.playerId).set(false);
-    };
-
-    wrapper.addEventListener('touchstart', start, { passive: false });
-    wrapper.addEventListener('touchend', end, { passive: false });
-    wrapper.addEventListener('touchcancel', end, { passive: false });
-    wrapper.addEventListener('mousedown', start);
-    wrapper.addEventListener('mouseup', end);
-    wrapper.addEventListener('mouseleave', end);
-
-    // Listen for all holding
-    holdListenerRef = database.ref('rooms/' + roomCode + '/rouletteState/holds');
-    holdListenerRef.on('value', snap => {
-        const holds = snap.val() || {};
-        updateHoldDots(holds);
-        const allHolding = players.every(p => holds[p.playerId] === true);
-        if (allHolding && isHost) {
-            setTimeout(() => startSpin(), 600);
-        }
-    });
-}
-
-// ─── Spin ───
-async function startSpin() {
+async function spinWheel() {
+    if (!isHost) return;
+    
     const winner = players[Math.floor(Math.random() * players.length)];
     const winnerIndex = players.indexOf(winner);
     const segmentAngle = 360 / players.length;
     const baseSpins = 1800 + Math.random() * 720;
     const targetAngle = winnerIndex * segmentAngle + segmentAngle / 2;
     const finalRotation = baseSpins + (360 - targetAngle);
-
-    await database.ref('rooms/' + roomCode + '/rouletteState').update({
-        phase: 'spinning',
-        winnerId: winner.playerId,
-        rotation: finalRotation,
-        holds: {}
-    });
-
-    setTimeout(async () => {
-        await database.ref('rooms/' + roomCode + '/rouletteState').update({ phase: 'result' });
-    }, 4500);
-}
-
-function buildSpinningUI(state) {
-    if (holdListenerRef) {
-        holdListenerRef.off();
-        holdListenerRef = null;
-    }
-    isHolding = false;
-    app.innerHTML = `
-        <div class="hover-name" id="hoverName">&nbsp;</div>
-        <div class="wheel-wrapper" id="wheelWrapper">
-            <div class="ticker"></div>
-            <div class="wheel-outer">
-                <canvas id="wheelCanvas"></canvas>
-                <div class="wheel-hub">🎯</div>
-            </div>
-        </div>
-        <div class="hold-ring" id="holdRing"></div>
-        <div class="bottom-text" id="bottomText">Spinning...</div>
-    `;
-    initCanvas();
-    drawWheel(0);
-}
-
-function triggerSpin(state) {
-    const targetRotation = state.rotation;
-    const duration = 4200;
+    
+    // Start spinning animation
     const startTime = performance.now();
-    const startRot = 0;
-
-    if (animFrameId) cancelAnimationFrame(animFrameId);
-
-    function easeOutQuart(t) {
-        return 1 - Math.pow(1 - t, 4);
-    }
-
-    let lastHoveredId = null;
-
+    const duration = 4200;
+    
     function animate(now) {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        const eased = easeOutQuart(progress);
-        currentRotation = startRot + (targetRotation - startRot) * eased;
-
+        const eased = 1 - Math.pow(1 - progress, 4);
+        currentRotation = finalRotation * eased;
+        
         drawWheel(currentRotation);
-
-        // Update hover name
-        const hovered = getHoveredPlayer(currentRotation);
-        const nameEl = document.getElementById('hoverName');
-        if (nameEl && hovered) {
-            const isYou = hovered.playerId === playerData.playerId;
-
-            // Only update DOM when hovered player changes
-            if (hovered.playerId !== lastHoveredId) {
-                lastHoveredId = hovered.playerId;
-                nameEl.textContent = hovered.name;
-                nameEl.classList.add('active');
-                nameEl.classList.toggle('is-you', isYou);
-            }
-        }
-
+        
         if (progress < 1) {
             animFrameId = requestAnimationFrame(animate);
+        } else {
+            // Spin complete - move to selection phase
+            setTimeout(() => {
+                database.ref('rooms/' + roomCode + '/todState').update({
+                    phase: 'selection',
+                    currentPlayer: winner.playerId
+                });
+            }, 500);
         }
     }
-
+    
     animFrameId = requestAnimationFrame(animate);
 }
 
-// ─── Result ───
-function showResultOverlay(state) {
-    const winner = players.find(p => p.playerId === state.winnerId);
-    if (!winner) return;
-
-    const isYou = state.winnerId === playerData.playerId;
-
-    const overlay = document.getElementById('winnerOverlay');
-    const card = document.getElementById('winnerCard');
-
-    card.innerHTML = `
-        <img src="${winner.avatarUrl}" class="winner-avatar" alt="${winner.name}">
-        <div class="winner-label">${winner.name}</div>
-        <div class="winner-subtitle">${isYou ? "YOU WERE" : "WAS"} SELECTED!</div>
-        <div class="winner-actions">
-            <button class="btn btn-gold" onclick="spinAgain()">Spin Again</button>
-            <button class="btn" onclick="backToLobby()">End Game</button>
+// ─── SELECTION PHASE ───
+function renderSelection(state) {
+    const selectedPlayer = players.find(p => p.playerId === state.currentPlayer);
+    if (!selectedPlayer) return;
+    
+    const challenges = state.playerChallenges[state.currentPlayer] || {};
+    const truthsRemaining = challenges.truthsRemaining || 0;
+    const daresRemaining = challenges.daresRemaining || 0;
+    
+    const isSelectedPlayer = state.currentPlayer === playerData.playerId;
+    
+    app.innerHTML = `
+        <div class="game-title">Truth or Dare</div>
+        
+        <div class="selected-player-box">
+            <div class="selected-player-name">${selectedPlayer.name}</div>
+            
+            ${isSelectedPlayer ? `
+                <p style="font-size: 1.2rem; font-weight: 700; margin-bottom: 20px;">
+                    Choose your fate!
+                </p>
+                
+                <div class="choice-buttons">
+                    <button 
+                        class="choice-btn truth-btn" 
+                        onclick="selectType('truth')"
+                        ${truthsRemaining === 0 ? 'disabled' : ''}
+                    >
+                        Truth
+                        <span class="choice-count">${truthsRemaining} available</span>
+                    </button>
+                    
+                    <button 
+                        class="choice-btn dare-btn" 
+                        onclick="selectType('dare')"
+                        ${daresRemaining === 0 ? 'disabled' : ''}
+                    >
+                        Dare
+                        <span class="choice-count">${daresRemaining} available</span>
+                    </button>
+                </div>
+            ` : `
+                <p style="font-size: 1.2rem; font-weight: 700;">
+                    Waiting for ${selectedPlayer.name} to choose...
+                </p>
+                <div style="margin-top: 20px;">
+                    <div style="font-size: 0.9rem; color: #666;">
+                        Truth: ${truthsRemaining} | Dare: ${daresRemaining}
+                    </div>
+                </div>
+            `}
         </div>
     `;
-
-    // Small delay so the spin finish is visible
-    setTimeout(() => overlay.classList.add('show'), 300);
 }
 
-function hideWinnerOverlay() {
-    document.getElementById('winnerOverlay').classList.remove('show');
+async function selectType(type) {
+    const state = await database.ref('rooms/' + roomCode + '/todState').once('value');
+    const stateVal = state.val();
+    const challenges = stateVal.playerChallenges[stateVal.currentPlayer];
+    
+    // Get random challenge of this type
+    const challengeList = type === 'truth' ? challenges.truths : challenges.dares;
+    const challengeKeys = Object.keys(challengeList);
+    
+    if (challengeKeys.length === 0) return;
+    
+    const randomKey = challengeKeys[Math.floor(Math.random() * challengeKeys.length)];
+    const challenge = challengeList[randomKey];
+    
+    // Remove this challenge and decrement count
+    await database.ref(`rooms/${roomCode}/todState/playerChallenges/${stateVal.currentPlayer}/${type}s/${randomKey}`).remove();
+    await database.ref(`rooms/${roomCode}/todState/playerChallenges/${stateVal.currentPlayer}/${type}sRemaining`).set(challengeKeys.length - 1);
+    
+    // Move to challenge phase
+    await database.ref('rooms/' + roomCode + '/todState').update({
+        phase: 'challenge',
+        currentChallenge: {
+            type: type,
+            text: challenge
+        }
+    });
+}
+
+// ─── CHALLENGE PHASE ───
+function renderChallenge(state) {
+    const selectedPlayer = players.find(p => p.playerId === state.currentPlayer);
+    const challenge = state.currentChallenge;
+    
+    app.innerHTML = `
+        <div class="game-title">Truth or Dare</div>
+        
+        <div class="challenge-box">
+            <div class="challenge-type ${challenge.type}">${challenge.type.toUpperCase()}</div>
+            <div class="challenge-for">For ${selectedPlayer.name}</div>
+            <div class="challenge-text">${challenge.text}</div>
+            
+            ${isHost ? `
+                <button class="btn btn-primary" onclick="nextTurn()">Next Turn</button>
+            ` : `
+                <div class="waiting-box" style="margin-top: 20px; padding: 20px;">
+                    <div class="waiting-text" style="font-size: 1rem;">Waiting for host...</div>
+                </div>
+            `}
+        </div>
+    `;
+}
+
+async function nextTurn() {
+    if (!isHost) return;
+    await database.ref('rooms/' + roomCode + '/todState').update({
+        phase: 'wheel',
+        currentPlayer: null,
+        currentChallenge: null
+    });
 }
 
 // ─── Actions ───
-async function spinAgain() {
-    document.body.classList.remove('you-selected');
-    lastPhase = null;
-    if (animFrameId) cancelAnimationFrame(animFrameId);
-    if (isHost) {
-        await database.ref('rooms/' + roomCode + '/rouletteState').update({
-            phase: 'waiting',
-            holds: {},
-            winnerId: null,
-            rotation: 0
-        });
-    } else {
-        hideWinnerOverlay();
-    }
-}
-
-async function backToLobby() {
-    if (isHost) {
-        await database.ref('rooms/' + roomCode).remove();
-    }
-    clearCurrentRoom();
-    window.location.href = 'index.html';
-}
-
 async function endGame() {
     if (!isHost) return;
     const confirmed = confirm('Are you sure you want to end the game and return home?');
@@ -855,8 +1087,10 @@ async function endGame() {
     }
 }
 
-window.spinAgain = spinAgain;
-window.backToLobby = backToLobby;
+window.submitAll = submitAll;
+window.spinWheel = spinWheel;
+window.selectType = selectType;
+window.nextTurn = nextTurn;
 window.endGame = endGame;
 
 // ─── Resize ───
