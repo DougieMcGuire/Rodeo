@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="transparent">
     <title>RODEO</title>
     <style>
         * { 
@@ -36,8 +36,6 @@
             background: transparent;
             z-index: 1;
         }
-        
-        /* Popup overlay */
         #prompt { 
             display: none; 
             position: fixed; 
@@ -161,14 +159,6 @@
             color: #000;
             font-weight: 600;
         }
-        
-        /* Safe area padding for notched devices */
-        @supports (padding: max(0px)) {
-            body {
-                padding-top: env(safe-area-inset-top);
-                padding-bottom: env(safe-area-inset-bottom);
-            }
-        }
     </style>
 </head>
 <body>
@@ -193,8 +183,9 @@
         // Check if in iframe (Claude editor, etc.)
         const isInIframe = window.self !== window.top;
         
-        // Check if user has seen prompt before
-        const hasSeenPrompt = localStorage.getItem('rodeo-install-prompt-seen');
+        // Check if user has seen prompt before (commented out for testing - add back later if needed)
+        // const hasSeenPrompt = localStorage.getItem('rodeo-install-prompt-seen');
+        const hasSeenPrompt = false; // Always show for now
         
         // Show prompt ONCE if conditions are met
         function showInstallPrompt() {
@@ -203,7 +194,7 @@
                     const prompt = document.getElementById('prompt');
                     if (prompt) {
                         prompt.classList.add('show');
-                        localStorage.setItem('rodeo-install-prompt-seen', 'true');
+                        // localStorage.setItem('rodeo-install-prompt-seen', 'true'); // Uncomment to persist
                     }
                 }, 1000);
             }
