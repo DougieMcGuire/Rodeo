@@ -1,8 +1,38 @@
 // Home screen logic
 console.log('home.js loaded');
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing...');
+// Wait for localStorage to be ready (important for PWA/mobile)
+function waitForLocalStorage() {
+    return new Promise((resolve) => {
+        let attempts = 0;
+        const check = () => {
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                console.log('localStorage is ready');
+                resolve();
+            } catch (e) {
+                attempts++;
+                if (attempts < 10) {
+                    console.log('Waiting for localStorage...', attempts);
+                    setTimeout(check, 100);
+                } else {
+                    console.error('localStorage not available after 10 attempts');
+                    resolve(); // Continue anyway
+                }
+            }
+        };
+        check();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM loaded, waiting for localStorage...');
+    
+    // Wait for localStorage to be ready
+    await waitForLocalStorage();
+    
+    console.log('Initializing...');
 
     let selectedFile = null;
     let playerData = null;
@@ -43,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentData = getPlayerData() || {};
         currentData.name = nameInput.value;
         localStorage.setItem('playerData', JSON.stringify(currentData));
+        console.log('Saved name to localStorage:', currentData);
     });
 
     // Avatar upload
@@ -66,6 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentData = getPlayerData() || {};
                 currentData.avatarUrl = event.target.result;
                 localStorage.setItem('playerData', JSON.stringify(currentData));
+                console.log('Saved avatar to localStorage, size:', event.target.result.length);
+                
+                // Verify it was saved
+                setTimeout(() => {
+                    const verify = getPlayerData();
+                    console.log('Verified save - has avatar:', !!verify?.avatarUrl);
+                }, 100);
             };
             reader.readAsDataURL(file);
         }
