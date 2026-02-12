@@ -55,6 +55,12 @@ if (gameType === 'roulette') {
     return;
 }
     
+if (gameType === 'would-you-rather') {
+    console.log('Redirecting to would you rather...');
+    window.location.href = `wyr.html?room=${roomCode}`;
+    return;
+}
+    
     // Update title
     const gameNames = {
         'truth-or-dare': '🤠 Truth or Dare',
