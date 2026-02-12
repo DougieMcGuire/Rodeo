@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Truth or Dare - RODEO</title>
-<link rel="icon" href="favicon.ico">
+<link rel="icon" href="assets/favicon.png">
 
 <style>
 * {
@@ -327,18 +327,15 @@ canvas {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background: #8b0000;
     border: 6px solid #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 .wheel-hub img {
-    width: 70px;
-    height: 70px;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .ticker {
@@ -603,7 +600,7 @@ function showLoading() {
         <div class="loading-screen">
             <div class="spinner-container">
                 <div class="spinner"></div>
-                <img src="favicon.ico" class="spinner-icon" alt="">
+                <img src="assets/favicon.png" class="spinner-icon" alt="">
             </div>
             <div class="loading-text">Loading game...</div>
         </div>
@@ -823,7 +820,7 @@ function renderWheel(state) {
             <div class="wheel-outer">
                 <canvas id="wheelCanvas"></canvas>
                 <div class="wheel-hub">
-                    <img src="favicon.ico" alt="">
+                    <img src="assets/favicon.png" alt="">
                 </div>
             </div>
         </div>
