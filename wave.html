@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Wavelength - RODEO</title>
+<link rel="icon" href="favicon.ico">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-x: hidden;
+}
+
+/* Animated radial lines effect */
+body::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 200vmax;
+    height: 200vmax;
+    transform: translate(-50%, -50%);
+    background: repeating-conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent 2deg,
+        rgba(0, 0, 0, 0.15) 2deg,
+        rgba(0, 0, 0, 0.15) 4deg
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+.app {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Loading */
+.loading-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.spinner-container {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 8px solid rgba(255, 255, 255, 0.3);
+    border-top: 8px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.spinner-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 0 #000;
+}
+
+/* Game Title */
+.game-title {
+    font-size: 2.5rem;
+    color: white;
+    text-shadow: 4px 4px 0 #000;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+/* Info Box */
+.info-box {
+    background: white;
+    padding: 30px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 100%;
+}
+
+.info-label {
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.blinded-player-name {
+    font-size: 2.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #ff0000;
+    margin-bottom: 20px;
+}
+
+.blinded-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 5px solid #000;
+    object-fit: cover;
+    margin-bottom: 20px;
+    filter: brightness(0.3);
+}
+
+.category-display {
+    font-size: 3rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #000;
+    letter-spacing: 2px;
+    margin: 20px 0;
+}
+
+.secret-number {
+    font-size: 5rem;
+    font-weight: 900;
+    color: #ff0000;
+    margin: 30px 0;
+}
+
+.instruction-text {
+    font-size: 1.1rem;
+    color: #333;
+    line-height: 1.6;
+    margin-top: 15px;
+}
+
+/* Slider */
+.slider-container {
+    background: white;
+    padding: 40px 30px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    width: 100%;
+}
+
+.tries-counter {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #666;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.slider-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.slider-btn {
+    width: 70px;
+    height: 70px;
+    border: 5px solid #000;
+    border-radius: 50%;
+    background: linear-gradient(180deg, rgba(255, 182, 193, 0.95) 0%, rgba(255, 105, 180, 0.95) 100%);
+    font-size: 2.5rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 6px 0 #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.slider-btn:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 0 #000;
+}
+
+.slider-btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 4px 0 #000;
+}
+
+.slider-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.slider-value {
+    font-size: 4rem;
+    font-weight: 900;
+    color: #000;
+    min-width: 120px;
+    text-align: center;
+}
+
+.scale-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #666;
+}
+
+/* Results */
+.results-box {
+    background: white;
+    padding: 40px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 100%;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.results-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.result-number {
+    font-size: 6rem;
+    font-weight: 900;
+    color: #ff0000;
+    margin: 20px 0;
+}
+
+.result-label {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.difference-box {
+    background: #f0f0f0;
+    padding: 20px;
+    border: 4px solid #000;
+    border-radius: 12px;
+    margin-top: 30px;
+}
+
+.difference-text {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #000;
+}
+
+.difference-text.perfect {
+    color: #2EAD4B;
+}
+
+.difference-text.close {
+    color: #FFD700;
+}
+
+.difference-text.far {
+    color: #ff0000;
+}
+
+/* Buttons */
+.btn {
+    padding: 20px 40px;
+    border: 5px solid #000;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 6px 0 #000, 0 6px 15px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 200, 200, 0.95) 100%);
+    width: 100%;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 #000, 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 4px 0 #000, 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary {
+    background: linear-gradient(180deg, rgba(255, 182, 193, 0.95) 0%, rgba(255, 105, 180, 0.95) 100%);
+}
+
+.btn-danger {
+    background: linear-gradient(180deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+}
+
+/* Host Controls */
+.host-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.host-controls .btn {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    width: auto;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .game-title {
+        font-size: 2rem;
+    }
+
+    .blinded-player-name {
+        font-size: 2rem;
+    }
+
+    .category-display {
+        font-size: 2rem;
+    }
+
+    .secret-number {
+        font-size: 4rem;
+    }
+
+    .slider-value {
+        font-size: 3rem;
+    }
+
+    .result-number {
+        font-size: 4rem;
+    }
+
+    .host-controls {
+        bottom: 10px;
+        right: 10px;
+    }
+}
+
+.hidden {
+    display: none !important;
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+
+<div class="host-controls hidden" id="hostControls">
+    <button class="btn btn-danger" onclick="endGame()">End Game</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+// ─── Firebase ───
+const firebaseConfig = {
+    apiKey: "AIzaSyBaJXCqGmUaGumvcWNE7w4FOOzTJVDH-yg",
+    authDomain: "polorfriends.firebaseapp.com",
+    databaseURL: "https://polorfriends-default-rtdb.firebaseio.com",
+    projectId: "polorfriends",
+    storageBucket: "polorfriends.firebasestorage.app",
+    messagingSenderId: "328546525972",
+    appId: "1:328546525972:web:a6fe0f0a45b4565a7b1801",
+    measurementId: "G-07B4713DQQ"
+};
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ─── Categories ───
+const CATEGORIES = [
+    "FOOD", "SPORT", "NAME", "CITY", "MOVIE", 
+    "SONG", "PET", "ANIMAL", "JOB", "BRAND", 
+    "SOCIAL MEDIA", "RESTAURANT"
+];
+
+// ─── Utils ───
+function getPlayerData() {
+    const d = localStorage.getItem('playerData');
+    return d ? JSON.parse(d) : null;
+}
+function getCurrentRoom() { return localStorage.getItem('currentRoom'); }
+function clearCurrentRoom() { localStorage.removeItem('currentRoom'); }
+
+// ─── State ───
+const urlParams = new URLSearchParams(window.location.search);
+const roomCode = urlParams.get('room') || getCurrentRoom();
+const playerData = getPlayerData();
+if (!roomCode || !playerData) window.location.href = 'index.html';
+
+let players = [];
+let isHost = false;
+
+const app = document.getElementById('app');
+
+function showLoading() {
+    app.innerHTML = `
+        <div class="loading-screen">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <img src="assets/favicon.png" class="spinner-icon" alt="">
+            </div>
+            <div class="loading-text">Loading game...</div>
+        </div>
+    `;
+}
+
+showLoading();
+
+// ─── Initialize ───
+database.ref('rooms/' + roomCode).once('value', snap => {
+    const room = snap.val();
+    if (!room) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
+    isHost = (room.hostId === playerData.playerId);
+
+    if (isHost) {
+        document.getElementById('hostControls').classList.remove('hidden');
+    }
+
+    database.ref('rooms/' + roomCode + '/players').once('value', snap => {
+        const pd = snap.val();
+        if (!pd) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
+        players = Object.values(pd).sort((a, b) => a.joinOrder - b.joinOrder);
+        
+        if (isHost) initGame();
+        attachGameStateListener();
+    });
+});
+
+async function initGame() {
+    const stateRef = database.ref('rooms/' + roomCode + '/wavelengthState');
+    const existingState = await stateRef.once('value');
+    
+    if (!existingState.val()) {
+        await startNewRound();
+    }
+}
+
+async function startNewRound() {
+    // Pick random number 1-10
+    const secretNumber = Math.floor(Math.random() * 10) + 1;
+    
+    // Pick random category
+    const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+    
+    // Pick random blinded player
+    const blindedIndex = Math.floor(Math.random() * players.length);
+    const blindedPlayer = players[blindedIndex];
+    
+    await database.ref('rooms/' + roomCode + '/wavelengthState').set({
+        phase: 'guessing',
+        secretNumber: secretNumber,
+        category: category,
+        blindedPlayerId: blindedPlayer.playerId,
+        currentGuess: 5,
+        triesUsed: 0
+    });
+}
+
+function attachGameStateListener() {
+    database.ref('rooms/' + roomCode + '/wavelengthState').on('value', snap => {
+        const state = snap.val();
+        if (!state) { showLoading(); return; }
+        renderState(state);
+    });
+}
+
+// ─── Rendering ───
+function renderState(state) {
+    if (state.phase === 'guessing') {
+        renderGuessing(state);
+    } else if (state.phase === 'results') {
+        renderResults(state);
+    }
+}
+
+// ─── GUESSING PHASE ───
+function renderGuessing(state) {
+    const blindedPlayer = players.find(p => p.playerId === state.blindedPlayerId);
+    const isBlinded = state.blindedPlayerId === playerData.playerId;
+    
+    if (isBlinded) {
+        // Blinded player view - can't see number
+        app.innerHTML = `
+            <div class="game-title">Wavelength</div>
+            
+            <div class="info-box">
+                <div class="info-label">You are blinded!</div>
+                <div class="category-display">${state.category}</div>
+                <div class="instruction-text">
+                    Everyone else can see a secret number 1-10.<br>
+                    They'll give answers that match the number.<br>
+                    Guess what the number is!
+                </div>
+            </div>
+            
+            <div class="slider-container">
+                <div class="tries-counter">${state.triesUsed}/7</div>
+                <div class="slider-controls">
+                    <button class="slider-btn" onclick="adjustGuess(-1)" ${state.currentGuess <= 1 || state.triesUsed >= 7 ? 'disabled' : ''}>
+                        &lt;
+                    </button>
+                    <div class="slider-value">${state.currentGuess}</div>
+                    <button class="slider-btn" onclick="adjustGuess(1)" ${state.currentGuess >= 10 || state.triesUsed >= 7 ? 'disabled' : ''}>
+                        &gt;
+                    </button>
+                </div>
+                <div class="scale-labels">
+                    <span>1 (Least)</span>
+                    <span>10 (Most)</span>
+                </div>
+            </div>
+        `;
+    } else {
+        // Non-blinded players view - can see number
+        app.innerHTML = `
+            <div class="game-title">Wavelength</div>
+            
+            <div class="info-box">
+                <img src="${blindedPlayer.avatarUrl}" class="blinded-avatar" alt="${blindedPlayer.name}">
+                <div class="blinded-player-name">${blindedPlayer.name}</div>
+                <div class="info-label">is blinded!</div>
+            </div>
+            
+            <div class="info-box" style="margin-top: 20px;">
+                <div class="info-label">Secret Number</div>
+                <div class="secret-number">${state.secretNumber}</div>
+                <div class="category-display">${state.category}</div>
+                <div class="instruction-text">
+                    Give ${blindedPlayer.name} answers out loud that match this number!<br>
+                    (1 = Least, 10 = Most)
+                </div>
+            </div>
+            
+            <div class="info-box" style="margin-top: 20px;">
+                <div class="info-label">${blindedPlayer.name}'s Current Guess</div>
+                <div class="secret-number" style="font-size: 4rem;">${state.currentGuess}</div>
+                <div class="tries-counter">${state.triesUsed}/7 tries used</div>
+            </div>
+        `;
+    }
+    
+    // Check if round is over
+    if (state.triesUsed >= 7 && isHost) {
+        setTimeout(() => showResults(), 2000);
+    }
+}
+
+async function adjustGuess(delta) {
+    const state = await database.ref('rooms/' + roomCode + '/wavelengthState').once('value');
+    const stateVal = state.val();
+    
+    if (stateVal.triesUsed >= 7) return;
+    
+    const newGuess = Math.max(1, Math.min(10, stateVal.currentGuess + delta));
+    
+    await database.ref('rooms/' + roomCode + '/wavelengthState').update({
+        currentGuess: newGuess,
+        triesUsed: stateVal.triesUsed + 1
+    });
+}
+
+async function showResults() {
+    if (!isHost) return;
+    await database.ref('rooms/' + roomCode + '/wavelengthState').update({
+        phase: 'results'
+    });
+}
+
+// ─── RESULTS PHASE ───
+function renderResults(state) {
+    const blindedPlayer = players.find(p => p.playerId === state.blindedPlayerId);
+    const difference = Math.abs(state.secretNumber - state.currentGuess);
+    
+    let differenceClass = 'far';
+    let differenceText = `Off by ${difference}`;
+    
+    if (difference === 0) {
+        differenceClass = 'perfect';
+        differenceText = 'PERFECT! 🎯';
+    } else if (difference <= 1) {
+        differenceClass = 'close';
+        differenceText = `So close! Off by ${difference}`;
+    } else if (difference <= 3) {
+        differenceClass = 'close';
+        differenceText = `Not bad! Off by ${difference}`;
+    }
+    
+    app.innerHTML = `
+        <div class="game-title">Wavelength</div>
+        
+        <div class="results-box">
+            <div class="results-title">Results</div>
+            
+            <div class="result-label">The Secret Number Was</div>
+            <div class="result-number">${state.secretNumber}</div>
+            
+            <div class="result-label">${blindedPlayer.name} Guessed</div>
+            <div class="result-number" style="color: #666; font-size: 4rem;">${state.currentGuess}</div>
+            
+            <div class="difference-box">
+                <div class="difference-text ${differenceClass}">${differenceText}</div>
+            </div>
+        </div>
+    `;
+    
+    // Auto advance to next round after 5 seconds
+    if (isHost) {
+        setTimeout(() => {
+            startNewRound();
+        }, 5000);
+    }
+}
+
+async function endGame() {
+    if (isHost) {
+        await database.ref('rooms/' + roomCode).remove();
+    }
+    clearCurrentRoom();
+    window.location.href = 'index.html';
+}
+
+window.adjustGuess = adjustGuess;
+window.endGame = endGame;
+</script>
+</body>
+</html>
