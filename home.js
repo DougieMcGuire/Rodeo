@@ -107,13 +107,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Save to localStorage for later
+        // Generate player ID if we don't have one
         const tempData = getPlayerData() || {};
+        if (!tempData.playerId) {
+            tempData.playerId = generateId();
+        }
         tempData.name = name;
         if (avatarPreview.style.display === 'block') {
             tempData.avatarUrl = avatarPreview.src;
         }
         localStorage.setItem('playerData', JSON.stringify(tempData));
+        
+        console.log('Saved player data:', tempData);
         
         // Go to game select - room will be created when game is chosen
         window.location.href = 'game-select.html';
