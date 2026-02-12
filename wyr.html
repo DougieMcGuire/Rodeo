@@ -640,6 +640,12 @@ function renderState(state) {
 }
 
 function renderVoting(state) {
+    // Wait for question to be loaded
+    if (!state.currentQuestion) {
+        showLoading();
+        return;
+    }
+    
     const myVote = state.votes[playerData.playerId];
     const totalVotes = Object.keys(state.votes).length;
     
@@ -702,6 +708,12 @@ async function showResults() {
 }
 
 function renderResults(state) {
+    // Wait for question to be loaded
+    if (!state.currentQuestion) {
+        showLoading();
+        return;
+    }
+    
     const votes = state.votes || {};
     const votesA = Object.values(votes).filter(v => v === 'A').length;
     const votesB = Object.values(votes).filter(v => v === 'B').length;
