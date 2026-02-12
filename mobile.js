@@ -44,43 +44,16 @@
     }
 
     function showInstallPrompt() {
-        // Detect iOS vs Android
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const isAndroid = /Android/i.test(navigator.userAgent);
-
-        let instructions = '';
-        
-        if (isIOS) {
-            instructions = `
-                <div class="quick-steps">
-                    <p class="step-text">1. Tap <span class="share-icon">⬆️</span> at the bottom</p>
-                    <p class="step-text">2. Select "Add to Home Screen"</p>
-                </div>
-            `;
-        } else if (isAndroid) {
-            instructions = `
-                <div class="quick-steps">
-                    <p class="step-text">1. Tap <span class="menu-icon">⋮</span> menu</p>
-                    <p class="step-text">2. Select "Add to Home screen"</p>
-                </div>
-            `;
-        }
-
         const overlay = document.createElement('div');
         overlay.id = 'pwa-install-overlay';
         overlay.innerHTML = `
             <div class="pwa-banner">
-                <div class="banner-content">
-                    <div class="banner-icon">🤠</div>
-                    <div class="banner-text">
-                        <h3>Install RODEO</h3>
-                        <p>Quick 2-tap install for full-screen play</p>
-                    </div>
-                </div>
-                <div class="banner-instructions">
-                    ${instructions}
-                </div>
                 <button class="dismiss-btn" onclick="dismissInstallPrompt()">×</button>
+                <h3 class="install-title">Install the app for better experience!</h3>
+                <p class="install-subtitle">(no download required)</p>
+                <div class="gif-container">
+                    <img src="assets/632FA4E9-04F8-470A-9538-E400B1F45AB1.gif" alt="Installation tutorial" class="tutorial-gif">
+                </div>
             </div>
         `;
         
@@ -95,13 +68,13 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0, 0, 0, 0.8);
+                background: rgba(0, 0, 0, 0.85);
                 z-index: 99999;
                 display: flex;
-                align-items: flex-end;
+                align-items: center;
                 justify-content: center;
                 animation: fadeIn 0.3s ease;
-                padding-bottom: env(safe-area-inset-bottom);
+                padding: 20px;
             }
 
             @keyframes fadeIn {
@@ -111,90 +84,83 @@
 
             .pwa-banner {
                 background: white;
-                border-radius: 20px 20px 0 0;
-                padding: 25px 20px;
+                border-radius: 20px;
+                padding: 30px 20px;
                 width: 100%;
-                max-width: 500px;
-                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+                max-width: 400px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
                 animation: slideUp 0.3s ease;
                 position: relative;
+                text-align: center;
             }
 
             @keyframes slideUp {
-                from { transform: translateY(100%); }
-                to { transform: translateY(0); }
+                from { transform: translateY(50px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
             }
 
-            .banner-content {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-                margin-bottom: 20px;
-            }
-
-            .banner-icon {
-                font-size: 3rem;
-            }
-
-            .banner-text h3 {
-                font-size: 1.5rem;
+            .install-title {
+                font-size: 1.3rem;
                 font-weight: 900;
                 color: #000;
                 margin: 0 0 5px 0;
+                padding-right: 30px;
             }
 
-            .banner-text p {
+            .install-subtitle {
                 font-size: 0.9rem;
                 color: #666;
-                margin: 0;
+                margin: 0 0 20px 0;
             }
 
-            .banner-instructions {
-                background: rgba(255, 59, 48, 0.05);
-                padding: 15px;
-                border-radius: 12px;
-                border: 2px solid #FF3B30;
+            .gif-container {
+                background: white;
+                border-radius: 15px;
+                overflow: hidden;
+                border: 4px solid #000;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             }
 
-            .quick-steps {
-                margin: 0;
+            .tutorial-gif {
+                width: 100%;
+                height: auto;
+                display: block;
+                animation: slowLoop 10s linear infinite;
             }
 
-            .step-text {
-                font-size: 1rem;
-                font-weight: 700;
-                color: #000;
-                margin: 8px 0;
-            }
-
-            .share-icon, .menu-icon {
-                display: inline-block;
-                font-size: 1.3rem;
-                background: #FF3B30;
-                color: white;
-                padding: 2px 8px;
-                border-radius: 6px;
-                margin: 0 3px;
+            @keyframes slowLoop {
+                0% { opacity: 1; }
+                98% { opacity: 1; }
+                100% { opacity: 0.8; }
             }
 
             .dismiss-btn {
                 position: absolute;
                 top: 10px;
                 right: 10px;
-                background: transparent;
+                background: rgba(0, 0, 0, 0.1);
                 border: none;
                 font-size: 2rem;
-                color: #999;
+                color: #000;
                 cursor: pointer;
                 width: 40px;
                 height: 40px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                border-radius: 50%;
+                line-height: 1;
+                padding: 0;
+                transition: all 0.2s;
+            }
+
+            .dismiss-btn:hover {
+                background: rgba(0, 0, 0, 0.2);
             }
 
             .dismiss-btn:active {
                 opacity: 0.5;
+                transform: scale(0.95);
             }
         `;
         document.head.appendChild(style);
