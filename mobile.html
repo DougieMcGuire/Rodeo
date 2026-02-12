@@ -2,201 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#8b0000">
     <title>RODEO</title>
-    <link rel="icon" href="favicon.ico">
-    <link rel="manifest" href="manifest.json">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+        #app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        
+        #prompt { 
+            display: none; 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            background: rgba(0,0,0,0.9); 
+            z-index: 9999; 
         }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #8b0000;
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        #app-frame {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #8b0000;
-        }
-
-        #install-prompt {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: none;
-            z-index: 999999;
-            padding-bottom: env(safe-area-inset-bottom);
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-
-        #install-prompt.show {
-            display: block;
-        }
-
-        .prompt-content {
-            background: white;
-            border-radius: 20px 20px 0 0;
-            padding: 25px 20px;
-            position: relative;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: transparent;
-            border: none;
-            font-size: 2rem;
-            color: #999;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-        }
-
-        .prompt-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .prompt-icon {
-            font-size: 3rem;
-        }
-
-        .prompt-text h1 {
-            font-size: 1.5rem;
-            font-weight: 900;
-            margin-bottom: 5px;
-        }
-
-        .prompt-text p {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .install-box {
-            background: rgba(255, 59, 48, 0.05);
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid #FF3B30;
-        }
-
-        .step {
-            font-size: 1rem;
-            font-weight: 700;
-            margin: 8px 0;
-            color: #000;
-        }
-
-        .share-icon {
-            display: inline-block;
-            background: #FF3B30;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 1.2rem;
-            margin: 0 3px;
-        }
+        #prompt.show { display: block; }
+        .box { background: #fff; border-radius: 20px 20px 0 0; padding: 20px; }
+        .close { position: absolute; top: 10px; right: 15px; font-size: 2rem; border: none; background: none; color: #999; }
+        h1 { font-size: 1.5rem; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 15px; }
+        .steps { background: #fff0f0; border: 2px solid #f00; border-radius: 10px; padding: 15px; }
+        .step { font-weight: bold; margin: 8px 0; }
+        .icon { background: #f00; color: #fff; padding: 2px 8px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <iframe id="app-frame" src="index.html"></iframe>
+    <iframe id="app" src="index.html"></iframe>
     
-    <div id="install-prompt">
-        <div class="prompt-content">
-            <button class="close-btn" onclick="dismissPrompt()">×</button>
-            
-            <div class="prompt-header">
-                <div class="prompt-icon">🤠</div>
-                <div class="prompt-text">
-                    <h1>Install RODEO</h1>
-                    <p>Quick 2-tap install for full-screen play</p>
-                </div>
-            </div>
-            
-            <div class="install-box">
-                <div class="step">1. Tap <span class="share-icon">⬆️</span> at the bottom</div>
-                <div class="step">2. Select "Add to Home Screen"</div>
+    <div id="prompt">
+        <div class="box">
+            <button class="close" onclick="hide()">×</button>
+            <h1>🤠 Install RODEO</h1>
+            <p>2-tap install for full screen</p>
+            <div class="steps">
+                <div class="step">1. Tap <span class="icon">⬆️</span> below</div>
+                <div class="step">2. Tap "Add to Home Screen"</div>
             </div>
         </div>
     </div>
 
     <script>
-        const iframe = document.getElementById('app-frame');
-        const installPrompt = document.getElementById('install-prompt');
-
-        // Check if standalone
-        const isStandalone = window.navigator.standalone || 
-                            window.matchMedia('(display-mode: standalone)').matches;
-        
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
         const isInIframe = window.self !== window.top;
-
-        // Only show prompt if mobile, NOT standalone, and NOT in iframe
-        if (isMobile && !isStandalone && !isInIframe) {
-            // Delay showing prompt by 500ms so page loads smoothly
-            setTimeout(() => {
-                installPrompt.classList.add('show');
-            }, 500);
+        
+        // Show prompt if NOT standalone and NOT in iframe
+        if (!isStandalone && !isInIframe) {
+            setTimeout(() => document.getElementById('prompt').classList.add('show'), 500);
         }
-
-        function dismissPrompt() {
-            installPrompt.classList.remove('show');
+        
+        function hide() {
+            document.getElementById('prompt').classList.remove('show');
         }
-
-        // Tap outside to dismiss
-        installPrompt.addEventListener('click', function(e) {
-            if (e.target === installPrompt) {
-                dismissPrompt();
-            }
-        });
-
-        // Optimize: Prevent unnecessary event listeners
-        const preventZoom = function(e) {
-            if (e.scale !== 1) {
-                e.preventDefault();
-            }
+        
+        // Close on outside tap
+        document.getElementById('prompt').onclick = function(e) {
+            if (e.target.id === 'prompt') hide();
         };
-
-        document.addEventListener('gesturestart', preventZoom, { passive: false });
-        document.addEventListener('gesturechange', preventZoom, { passive: false });
-        document.addEventListener('gestureend', preventZoom, { passive: false });
-
-        // Prevent double-tap zoom (optimized)
-        let lastTap = 0;
-        document.addEventListener('touchend', function(e) {
-            const now = Date.now();
-            if (now - lastTap <= 300) {
-                e.preventDefault();
-            }
-            lastTap = now;
-        }, { passive: false });
     </script>
 </body>
 </html>
