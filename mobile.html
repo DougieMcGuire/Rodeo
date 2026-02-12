@@ -5,65 +5,189 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#8b0000">
-    <title>Mobile App</title>
-
-    <!-- Optional: Default styles for iframe content container -->
+    <title>RODEO</title>
+    <link rel="icon" href="favicon.ico">
+    <link rel="manifest" href="manifest.json">
     <style>
-        html, body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: radial-gradient(circle at center,#ff0000 0%,#8b0000 100%);
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
+            background: #8b0000;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
-        body {
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-        }
-
-        /* Fallback content while iframe loads */
-        .container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: white;
-            font-family: sans-serif;
-            text-align: center;
-        }
-
-        .container h1 {
-            font-size: 2rem;
-        }
-
-        iframe#app-iframe {
+        #app-frame {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             border: none;
+            background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
+        }
+
+        #install-prompt {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
             z-index: 999999;
-            background: radial-gradient(circle at center,#ff0000 0%,#8b0000 100%);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        #install-prompt.show {
+            display: flex;
+        }
+
+        .prompt-content {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 30px 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .prompt-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .prompt-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .prompt-subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .install-steps {
+            background: rgba(255, 59, 48, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #FF3B30;
+            margin-bottom: 20px;
+        }
+
+        .step {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .share-icon {
+            display: inline-block;
+            background: #FF3B30;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 1.2rem;
+        }
+
+        .dismiss-btn {
+            background: transparent;
+            border: 2px solid #ddd;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
         }
     </style>
 </head>
 <body>
-
-    <!-- Optional fallback / loading content -->
-    <div class="container">
-        <h1>Loading App...</h1>
+    <iframe id="app-frame" src="index.html"></iframe>
+    
+    <div id="install-prompt">
+        <div class="prompt-content">
+            <div class="prompt-icon">🤠</div>
+            <h1 class="prompt-title">Install RODEO</h1>
+            <p class="prompt-subtitle">Quick 2-tap install for full-screen play</p>
+            
+            <div class="install-steps">
+                <div class="step">1. Tap <span class="share-icon">⬆️</span> at the bottom</div>
+                <div class="step">2. Select "Add to Home Screen"</div>
+            </div>
+            
+            <button class="dismiss-btn" onclick="dismissPrompt()">Continue in browser</button>
+        </div>
     </div>
 
-    <!-- Mobile.js SPA logic -->
-    <script src="mobile.js"></script>
+    <script>
+        console.log('mobile.html loaded');
 
+        const iframe = document.getElementById('app-frame');
+        const installPrompt = document.getElementById('install-prompt');
+
+        // Check if standalone
+        const isStandalone = window.navigator.standalone || 
+                            window.matchMedia('(display-mode: standalone)').matches;
+        
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        console.log('Is mobile:', isMobile);
+        console.log('Is standalone:', isStandalone);
+
+        // Show install prompt if mobile and NOT standalone
+        if (isMobile && !isStandalone) {
+            installPrompt.classList.add('show');
+        }
+
+        function dismissPrompt() {
+            installPrompt.classList.remove('show');
+        }
+
+        // Listen for navigation inside iframe
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'navigate') {
+                console.log('Navigation request:', e.data.url);
+                iframe.src = e.data.url;
+            }
+        });
+
+        // Prevent zoom
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gesturechange', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gestureend', function(e) {
+            e.preventDefault();
+        });
+
+        // Prevent double-tap zoom
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        console.log('mobile.html ready');
+    </script>
 </body>
 </html>
