@@ -43,260 +43,6 @@
     // Extra optimizations for standalone mode
     if (isStandalone) {
         makeStandaloneApp();
-        enableIframeNavigation();
-    }
-
-    // Register service worker for auto-updates (works in browser AND standalone)
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then((registration) => {
-                    console.log('[SW] Registered:', registration);
-                    
-                    // Check for updates every 30 seconds when app is open
-                    setInterval(() => {
-                        registration.update();
-                    }, 30000);
-
-                    // Listen for updates
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        console.log('[SW] Update found!');
-                        
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // New version available
-                                console.log('[SW] New version ready!');
-                                
-                                // Auto-reload to get new version
-                                newWorker.postMessage('SKIP_WAITING');
-                                window.location.reload();
-                            }
-                        });
-                    });
-                })
-                .catch((error) => {
-                    console.log('[SW] Registration failed:', error);
-                });
-        });
-
-        // Reload when new service worker takes control
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('[SW] Controller changed, reloading...');
-            window.location.reload();
-        });
-    }
-
-    function enableIframeNavigation() {
-        console.log('Enabling iframe navigation for standalone app...');
-
-        // Detect the base path (e.g., /Rodeo/)
-        const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-        console.log('Base path:', basePath);
-
-        // Create fullscreen iframe container if not on index.html
-        const isIndex = window.location.pathname.endsWith('index.html') || 
-                       window.location.pathname === '/' ||
-                       window.location.pathname === basePath;
-        
-        if (!isIndex) {
-            console.log('Not on index, redirecting to index with iframe...');
-            const targetPage = window.location.pathname + window.location.search;
-            window.location.href = basePath + 'index.html?iframe=' + encodeURIComponent(targetPage);
-            return;
-        }
-
-        // Check if we should load something in an iframe
-        const urlParams = new URLSearchParams(window.location.search);
-        const iframePage = urlParams.get('iframe');
-        
-        if (iframePage) {
-            // Create fullscreen iframe
-            const iframe = document.createElement('iframe');
-            iframe.id = 'app-iframe';
-            iframe.src = iframePage;
-            iframe.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                height: 100vh;
-                height: -webkit-fill-available;
-                border: none;
-                z-index: 999999;
-                background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
-            `;
-            
-            // Hide address bar by scrolling
-            iframe.onload = function() {
-                window.scrollTo(0, 1);
-                setTimeout(() => window.scrollTo(0, 1), 100);
-                setTimeout(() => window.scrollTo(0, 1), 500);
-            };
-            
-            document.body.appendChild(iframe);
-            
-            // Hide original content
-            document.body.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-            document.body.style.height = '100%';
-            const container = document.querySelector('.container');
-            if (container) container.style.display = 'none';
-            
-            // Force hide address bar
-            setTimeout(() => {
-                window.scrollTo(0, 1);
-            }, 100);
-        }
-
-        // Intercept all navigation in standalone mode
-        document.addEventListener('click', (e) => {
-            const target = e.target.closest('a, button');
-            if (!target) return;
-
-            // Check if navigation is happening
-            const href = target.getAttribute('href');
-            
-            if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Intercepted click to:', href);
-                
-                // Build full URL if relative
-                let fullUrl = href;
-                if (!href.startsWith('http') && !href.startsWith('/')) {
-                    fullUrl = basePath + href;
-                }
-                
-                loadInIframe(fullUrl);
-            }
-        }, true);
-
-        // Intercept form submissions
-        document.addEventListener('submit', (e) => {
-            e.preventDefault();
-        }, true);
-
-        // Monitor for window.location changes
-        const originalReplace = window.location.replace;
-        window.location.replace = function(url) {
-            if (!url.includes('index.html') && isStandalone) {
-                console.log('Intercepted location.replace:', url);
-                loadInIframe(url);
-                return;
-            }
-            originalReplace.call(window.location, url);
-        };
-
-        // Create a proxy for window.location.href assignments
-        const iframe = document.getElementById('app-iframe');
-        if (iframe) {
-            // Listen for messages from iframe trying to navigate
-            window.addEventListener('message', (e) => {
-                if (e.data && e.data.type === 'navigate') {
-                    loadInIframe(e.data.url);
-                }
-            });
-        }
-
-        function loadInIframe(url) {
-            console.log('Loading in iframe:', url);
-            
-            // Prevent address bar from showing
-            window.scrollTo(0, 1);
-            
-            let iframe = document.getElementById('app-iframe');
-            
-            if (!iframe) {
-                // Create iframe
-                iframe = document.createElement('iframe');
-                iframe.id = 'app-iframe';
-                iframe.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    height: 100vh;
-                    height: -webkit-fill-available;
-                    border: none;
-                    z-index: 999999;
-                    background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
-                `;
-                
-                iframe.onload = function() {
-                    // Force hide address bar when iframe loads
-                    window.scrollTo(0, 1);
-                    setTimeout(() => window.scrollTo(0, 1), 100);
-                    setTimeout(() => window.scrollTo(0, 1), 500);
-                };
-                
-                document.body.appendChild(iframe);
-                
-                // Hide original content and lock body
-                document.body.style.overflow = 'hidden';
-                document.body.style.position = 'fixed';
-                document.body.style.width = '100%';
-                document.body.style.height = '100%';
-                const container = document.querySelector('.container');
-                if (container) container.style.display = 'none';
-            }
-            
-            // Build proper URL
-            let properUrl = url;
-            if (!url.startsWith('http')) {
-                if (url.startsWith('/')) {
-                    properUrl = window.location.origin + url;
-                } else {
-                    properUrl = basePath + url;
-                }
-            }
-            
-            iframe.src = properUrl;
-            
-            // Update browser URL without reload
-            const newUrl = basePath + 'index.html?iframe=' + encodeURIComponent(properUrl);
-            window.history.pushState({}, '', newUrl);
-            
-            // Hide address bar
-            setTimeout(() => {
-                window.scrollTo(0, 1);
-            }, 100);
-        }
-
-        // Handle back button
-        window.addEventListener('popstate', () => {
-            const iframe = document.getElementById('app-iframe');
-            const urlParams = new URLSearchParams(window.location.search);
-            const iframePage = urlParams.get('iframe');
-            
-            window.scrollTo(0, 1);
-            
-            if (!iframePage && iframe) {
-                // Going back to index
-                iframe.remove();
-                document.body.style.overflow = '';
-                document.body.style.position = '';
-                document.body.style.width = '';
-                document.body.style.height = '';
-                const container = document.querySelector('.container');
-                if (container) container.style.display = '';
-            } else if (iframePage && iframe) {
-                // Update iframe
-                iframe.src = iframePage;
-            }
-        });
-
-        // Continuously hide address bar (aggressive)
-        setInterval(() => {
-            if (document.getElementById('app-iframe')) {
-                window.scrollTo(0, 1);
-            }
-        }, 2000);
-
-        console.log('Iframe navigation enabled!');
     }
 
     function showInstallPrompt() {
@@ -617,19 +363,36 @@
     function makeStandaloneApp() {
         console.log('Applying standalone app enhancements...');
 
-        // Add PWA meta tags
-        const meta = document.createElement('meta');
-        meta.name = 'apple-mobile-web-app-capable';
-        meta.content = 'yes';
-        document.head.appendChild(meta);
+        // Ensure ALL required meta tags are present
+        const metaTags = [
+            { name: 'apple-mobile-web-app-capable', content: 'yes' },
+            { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+            { name: 'mobile-web-app-capable', content: 'yes' },
+            { name: 'theme-color', content: '#8b0000' }
+        ];
 
-        const statusBar = document.createElement('meta');
-        statusBar.name = 'apple-mobile-web-app-status-bar-style';
-        statusBar.content = 'black-translucent';
-        document.head.appendChild(statusBar);
+        metaTags.forEach(tag => {
+            let meta = document.querySelector(`meta[name="${tag.name}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.name = tag.name;
+                document.head.appendChild(meta);
+            }
+            meta.content = tag.content;
+        });
+
+        // Update viewport
+        let viewport = document.querySelector('meta[name="viewport"]');
+        if (!viewport) {
+            viewport = document.createElement('meta');
+            viewport.name = 'viewport';
+            document.head.appendChild(viewport);
+        }
+        viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui';
 
         // Add standalone-specific styles
         const style = document.createElement('style');
+        style.id = 'standalone-styles';
         style.textContent = `
             /* Safe area for notched phones */
             body {
@@ -640,9 +403,15 @@
             }
 
             /* Full screen experience */
-            html, body {
-                width: 100%;
+            html {
                 height: 100%;
+                height: -webkit-fill-available;
+            }
+            
+            body {
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+                width: 100%;
                 overflow-x: hidden;
             }
 
@@ -654,6 +423,11 @@
             body {
                 -ms-overflow-style: none;
                 scrollbar-width: none;
+            }
+
+            /* Prevent pull-to-refresh */
+            body {
+                overscroll-behavior-y: contain;
             }
         `;
         document.head.appendChild(style);
