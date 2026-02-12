@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Roulette - RODEO</title>
+<title>Would You Rather - RODEO</title>
 <link rel="icon" href="favicon.ico">
 
 <style>
@@ -11,7 +11,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -48,7 +47,7 @@ body::before {
 
 .app {
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -89,109 +88,128 @@ body::before {
     text-shadow: 3px 3px 0 #000;
 }
 
-/* Hover Name */
-.hover-name {
-    font-size: clamp(1.5rem, 5vw, 2.5rem);
-    font-weight: 900;
+/* Game Title */
+.game-title {
+    font-size: 2.5rem;
+    color: white;
+    text-shadow: 4px 4px 0 #000;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+/* Question Box */
+.question-box {
     background: white;
-    color: #000;
-    padding: 20px 40px;
+    padding: 30px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 100%;
+}
+
+.question-text {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    color: #ff0000;
+}
+
+.round-counter {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Choice Container */
+.choice-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.choice-box {
+    background: white;
+    padding: 30px 20px;
     border: 5px solid #000;
     border-radius: 15px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    min-height: 3rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
     transition: all 0.2s;
-}
-
-.hover-name.is-you {
-    background: linear-gradient(180deg, rgba(255, 182, 193, 0.95) 0%, rgba(255, 105, 180, 0.95) 100%);
-    transform: scale(1.05);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-}
-
-/* Wheel */
-.wheel-wrapper {
+    box-shadow: 0 6px 0 #000;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
     position: relative;
-    width: min(85vw, 85vh, 400px);
-    aspect-ratio: 1;
 }
 
-.wheel-outer {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 8px solid #000;
-    background: #111;
-    overflow: hidden;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+.choice-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 0 #000;
 }
 
-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
+.choice-box:active {
+    transform: translateY(2px);
+    box-shadow: 0 4px 0 #000;
 }
 
-/* Center Hub */
-.wheel-hub {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
+.choice-box.selected {
     background: #FFD700;
-    border: 6px solid #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    transform: scale(1.02);
 }
 
-/* Pointer */
-.ticker {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    border-top: 40px solid #ff0000;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
-    z-index: 10;
+.choice-box.option-a.selected {
+    background: linear-gradient(180deg, #90EE90 0%, #7FD87F 100%);
 }
 
-/* Hold Ring */
-.hold-ring {
+.choice-box.option-b.selected {
+    background: linear-gradient(180deg, #FFB6C1 0%, #FFB6C1 100%);
+}
+
+/* Waiting Message */
+.waiting-box {
+    background: white;
+    padding: 30px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 100%;
+}
+
+.waiting-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.voters-list {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     justify-content: center;
-    width: 100%;
 }
 
-.hold-dot {
+.voter-dot {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
     border-radius: 12px;
-    background: white;
+    background: #f0f0f0;
     border: 4px solid #000;
-    box-shadow: 0 4px 0 #000;
-    transition: all 0.2s;
 }
 
-.hold-dot img {
+.voter-dot.voted {
+    background: #90EE90;
+}
+
+.voter-dot img {
     width: 30px;
     height: 30px;
     border-radius: 50%;
@@ -199,90 +217,94 @@ canvas {
     object-fit: cover;
 }
 
-.hold-dot .dot-name {
+.voter-dot .voter-name {
     font-size: 0.9rem;
     font-weight: 800;
-    color: #666;
-    text-transform: uppercase;
+    color: #333;
 }
 
-.hold-dot.ready {
-    background: #90EE90;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 #000;
-}
-
-.hold-dot.ready .dot-name {
-    color: #000;
-}
-
-/* Bottom Text */
-.bottom-text {
-    font-weight: 800;
-    color: white;
-    text-transform: uppercase;
-    font-size: 1.2rem;
-    text-shadow: 3px 3px 0 #000;
-    letter-spacing: 1px;
-}
-
-/* Winner Overlay */
-.winner-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
-}
-
-.winner-overlay.show {
-    display: flex;
-}
-
-.winner-card {
+/* Results */
+.results-box {
     background: white;
-    padding: 40px;
+    padding: 30px;
     border: 5px solid #000;
     border-radius: 20px;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-    max-width: 400px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     width: 100%;
 }
 
-.winner-avatar {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    border: 5px solid #FFD700;
-    margin: 0 auto 20px;
-    object-fit: cover;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+.results-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    text-align: center;
 }
 
-.winner-label {
-    font-size: 2.5rem;
-    font-weight: 900;
+.result-option {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 4px solid #000;
+    border-radius: 12px;
+    background: #f9f9f9;
+}
+
+.result-option.winner {
+    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+}
+
+.result-option-text {
+    font-size: 1.2rem;
+    font-weight: 800;
     margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
 }
 
-.winner-subtitle {
-    color: #ff0000;
+.result-percentage {
+    font-size: 2rem;
     font-weight: 900;
-    font-size: 1.5rem;
-    margin-bottom: 30px;
-    text-transform: uppercase;
+    color: #ff0000;
+    margin-bottom: 10px;
 }
 
-.winner-actions {
+.result-voters {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.result-voter {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: white;
+    border: 3px solid #000;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.result-voter img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #000;
+    object-fit: cover;
+}
+
+.exposed-banner {
+    background: #ff0000;
+    color: white;
+    padding: 15px;
+    border: 4px solid #000;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 0 #000;
 }
 
 /* Buttons */
@@ -312,13 +334,20 @@ canvas {
     box-shadow: 0 4px 0 #000, 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-.btn-gold {
-    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+.btn-primary {
+    background: linear-gradient(180deg, rgba(255, 182, 193, 0.95) 0%, rgba(255, 105, 180, 0.95) 100%);
 }
 
 .btn-danger {
     background: linear-gradient(180deg, #ff6b6b 0%, #ee5a6f 100%);
     color: white;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
 }
 
 /* Host Controls */
@@ -337,46 +366,33 @@ canvas {
 
 /* Responsive */
 @media (max-width: 600px) {
-    .hover-name {
-        font-size: 1.3rem;
-        padding: 15px 30px;
-    }
-
-    .wheel-wrapper {
-        width: min(90vw, 90vh, 350px);
-    }
-
-    .wheel-hub {
-        width: 60px;
-        height: 60px;
-        font-size: 1.5rem;
-    }
-
-    .winner-label {
+    .game-title {
         font-size: 2rem;
     }
 
-    .winner-subtitle {
-        font-size: 1.2rem;
+    .question-text {
+        font-size: 1.4rem;
     }
 
-    .btn {
-        padding: 15px 30px;
+    .choice-box {
         font-size: 1rem;
+        padding: 25px 15px;
+    }
+
+    .result-option-text {
+        font-size: 1rem;
+    }
+
+    .result-percentage {
+        font-size: 1.5rem;
     }
 
     .host-controls {
         bottom: 10px;
         right: 10px;
     }
-
-    .host-controls .btn {
-        padding: 10px 20px;
-        font-size: 0.8rem;
-    }
 }
 
-/* Hidden utility */
 .hidden {
     display: none !important;
 }
@@ -385,10 +401,6 @@ canvas {
 <body>
 
 <div class="app" id="app"></div>
-
-<div class="winner-overlay" id="winnerOverlay">
-    <div class="winner-card" id="winnerCard"></div>
-</div>
 
 <div class="host-controls hidden" id="hostControls">
     <button class="btn btn-danger" onclick="endGame()">End Game</button>
@@ -412,6 +424,78 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
+// ─── Scenarios Data ───
+const SCENARIOS = {
+    family: [
+        ["Have unlimited pizza for life", "Have unlimited tacos for life"],
+        ["Be able to fly", "Be invisible"],
+        ["Live in a treehouse", "Live in a castle"],
+        ["Have a pet dragon", "Have a pet unicorn"],
+        ["Always be 10 minutes late", "Always be 20 minutes early"],
+        ["Spend a week with {player} at Disney World", "Spend a week with {player} at the beach"],
+        ["Never eat dessert again", "Never eat pizza again"],
+        ["Be able to talk to animals", "Be able to speak every language"],
+        ["Have super strength", "Have super speed"],
+        ["Live without music", "Live without TV"],
+        ["Always have to sing instead of speak", "Always have to dance instead of walk"],
+        ["Be the funniest person alive", "Be the smartest person alive"],
+        ["Have a rewind button for life", "Have a pause button for life"],
+        ["Never use social media again", "Never watch another movie/show again"],
+        ["Go on a road trip with {player}", "Go camping with {player}"]
+    ],
+    friends: [
+        ["Kiss {player}", "Go on a date with {player}"],
+        ["Never have your phone die", "Never have slow wifi"],
+        ["Be TikTok famous", "Be Instagram famous"],
+        ["Fight one horse-sized duck", "Fight 100 duck-sized horses"],
+        ["Share a secret with {player}", "Share your phone password with {player}"],
+        ["Always know what {player} is thinking", "Always know when {player} is lying"],
+        ["Lose all your photos", "Lose all your money"],
+        ["Never drink coffee again", "Never drink alcohol again"],
+        ["Live with {player} for a year", "Be roommates with {player} for a month"],
+        ["Have everyone at the party follow you on Instagram", "Get free drinks all night"],
+        ["Only eat chicken nuggets", "Only eat french fries"],
+        ["Win $10,000 but {player} knows your bank password", "Win $5,000 and keep it secret"],
+        ["Always be the designated driver", "Always need a ride home"],
+        ["Hear {player} sing karaoke for an hour", "Watch {player} attempt standup comedy"],
+        ["Never go to parties again", "Never have a quiet night in again"]
+    ],
+    freaky: [
+        ["Sleep with {player}", "Sleep with {player}'s best friend"],
+        ["Send a nude to the group chat", "Post your search history publicly"],
+        ["Make out with {player} right now", "Give {player} a lap dance"],
+        ["Be handcuffed to {player} for 24 hours", "Be in a room alone with {player} for 6 hours"],
+        ["Have everyone know your body count", "Have everyone see your text messages"],
+        ["Drunk text your ex", "Drunk call your crush"],
+        ["Have a threesome with {player} and {player}", "Have a threesome with two strangers"],
+        ["Never have sex again", "Never masturbate again"],
+        ["Hook up with {player} in front of everyone", "Hook up with {player} in secret but everyone finds out"],
+        ["Let {player} go through your phone", "Let {player} read your diary"],
+        ["Send your nudes to {player}", "Receive {player}'s nudes"],
+        ["Be dominated by {player}", "Dominate {player}"],
+        ["Have sex in public once", "Never have sex with lights on again"],
+        ["Make out with everyone in this room", "Never kiss anyone again for a year"],
+        ["Try every kink once", "Stick to vanilla forever"]
+    ],
+    party: [
+        ["Take 5 shots right now", "Shotgun 3 beers right now"],
+        ["Streak around the block", "Flash the group"],
+        ["Play truth or dare with {player} for an hour", "Play never have I ever for an hour"],
+        ["Drink every time {player} drinks tonight", "Do a body shot off {player}"],
+        ["Beer bong 2 beers", "Take 10 shots in 10 minutes"],
+        ["Fight {player}", "Kiss {player}"],
+        ["Chug mystery drink", "Drink from {player}'s drink all night"],
+        ["Do karaoke drunk", "Dance on a table"],
+        ["Let {player} draw on your face", "Let the group choose your outfit tomorrow"],
+        ["Lose a drinking game and streak", "Win a drinking game and take 3 shots"],
+        ["Take a shot every 10 minutes for an hour", "Shotgun a beer every 30 minutes for 2 hours"],
+        ["Make out with {player} for 30 seconds", "Give {player} a piggyback ride around the party"],
+        ["Compete in a chugging contest with {player}", "Play flip cup with {player} as your partner"],
+        ["Start a dance circle", "Start a mosh pit"],
+        ["Drink whatever {player} mixes for you", "Let {player} feed you mystery shots"]
+    ]
+};
+
 // ─── Utils ───
 function getPlayerData() {
     const d = localStorage.getItem('playerData');
@@ -428,39 +512,29 @@ if (!roomCode || !playerData) window.location.href = 'index.html';
 
 let players = [];
 let isHost = false;
-let isHolding = false;
-let currentRotation = 0;
-let animFrameId = null;
-let wheelCanvas, wheelCtx;
-let wheelSize = 0;
-let holdListenerRef = null;
+let currentMode = 'friends'; // default mode
+let usedScenarios = [];
+let roundNumber = 1;
 
-const SEGMENT_COLORS = [
-    '#E8453C', '#E8832A', '#D4A72C', '#2EAD4B',
-    '#2980D4', '#6C3ED4', '#C23EAA', '#D44E6B',
-    '#1D9C8C', '#A86B2D'
-];
-
-// ─── Init ───
 const app = document.getElementById('app');
 
 function showLoading() {
     app.innerHTML = `
         <div class="loading-screen">
             <div class="spinner"></div>
-            <div class="loading-text">Loading roulette...</div>
+            <div class="loading-text">Loading game...</div>
         </div>
     `;
 }
 
 showLoading();
 
+// ─── Initialize ───
 database.ref('rooms/' + roomCode).once('value', snap => {
     const room = snap.val();
     if (!room) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
     isHost = (room.hostId === playerData.playerId);
 
-    // Show host controls if host
     if (isHost) {
         document.getElementById('hostControls').classList.remove('hidden');
     }
@@ -469,360 +543,239 @@ database.ref('rooms/' + roomCode).once('value', snap => {
         const pd = snap.val();
         if (!pd) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
         players = Object.values(pd).sort((a, b) => a.joinOrder - b.joinOrder);
+        
         if (isHost) initGame();
         attachGameStateListener();
     });
 });
 
 async function initGame() {
-    await database.ref('rooms/' + roomCode + '/rouletteState').set({
-        phase: 'waiting',
-        holds: {},
-        winnerId: null,
-        rotation: 0
+    // Get mode from room settings or default to friends
+    const room = await database.ref('rooms/' + roomCode).once('value');
+    currentMode = room.val().gameMode || 'friends';
+    
+    await database.ref('rooms/' + roomCode + '/wyrState').set({
+        phase: 'voting',
+        round: 1,
+        mode: currentMode,
+        currentQuestion: null,
+        votes: {},
+        revealed: false
     });
+    
+    // Start first round
+    await startNewRound();
 }
 
 function attachGameStateListener() {
-    database.ref('rooms/' + roomCode + '/rouletteState').on('value', snap => {
+    database.ref('rooms/' + roomCode + '/wyrState').on('value', snap => {
         const state = snap.val();
         if (!state) { showLoading(); return; }
         renderState(state);
     });
 }
 
-// ─── Render ───
-let lastPhase = null;
+// ─── Scenario Selection ───
+function getRandomScenario(mode) {
+    const scenarios = SCENARIOS[mode] || SCENARIOS.friends;
+    let availableScenarios = scenarios.filter((_, idx) => !usedScenarios.includes(idx));
+    
+    // Reset if we've used all scenarios
+    if (availableScenarios.length === 0) {
+        usedScenarios = [];
+        availableScenarios = scenarios;
+    }
+    
+    const randomIndex = Math.floor(Math.random() * availableScenarios.length);
+    const selectedScenario = availableScenarios[randomIndex];
+    const originalIndex = scenarios.indexOf(selectedScenario);
+    usedScenarios.push(originalIndex);
+    
+    return selectedScenario;
+}
 
+function replacePlayerPlaceholders(text) {
+    // Replace {player} with random player names
+    const matches = text.match(/\{player\}/g);
+    if (!matches) return text;
+    
+    let result = text;
+    matches.forEach(() => {
+        const randomPlayer = players[Math.floor(Math.random() * players.length)];
+        result = result.replace('{player}', randomPlayer.name);
+    });
+    
+    return result;
+}
+
+async function startNewRound() {
+    if (!isHost) return;
+    
+    const scenario = getRandomScenario(currentMode);
+    const optionA = replacePlayerPlaceholders(scenario[0]);
+    const optionB = replacePlayerPlaceholders(scenario[1]);
+    
+    // 50/50 chance to reveal votes
+    const willReveal = Math.random() < 0.5;
+    
+    await database.ref('rooms/' + roomCode + '/wyrState').update({
+        phase: 'voting',
+        round: roundNumber,
+        currentQuestion: {
+            optionA: optionA,
+            optionB: optionB
+        },
+        votes: {},
+        revealed: willReveal
+    });
+}
+
+// ─── Rendering ───
 function renderState(state) {
-    if (state.phase === 'waiting') {
-        document.body.classList.remove('you-selected');
-        hideWinnerOverlay();
-        if (lastPhase !== 'waiting') buildWaitingUI(state);
-        updateHoldDots(state.holds || {});
-    } else if (state.phase === 'spinning') {
-        hideWinnerOverlay();
-        if (lastPhase !== 'spinning') buildSpinningUI(state);
-        triggerSpin(state);
-    } else if (state.phase === 'result') {
-        showResultOverlay(state);
+    if (state.phase === 'voting') {
+        renderVoting(state);
+    } else if (state.phase === 'results') {
+        renderResults(state);
     }
-    lastPhase = state.phase;
 }
 
-// ─── Waiting UI ───
-function buildWaitingUI(state) {
-    currentRotation = 0;
-    // Clean up old hold listener
-    if (holdListenerRef) {
-        holdListenerRef.off();
-        holdListenerRef = null;
-    }
+function renderVoting(state) {
+    const myVote = state.votes[playerData.playerId];
+    const totalVotes = Object.keys(state.votes).length;
+    
     app.innerHTML = `
-        <div class="hover-name" id="hoverName">&nbsp;</div>
-        <div class="wheel-wrapper" id="wheelWrapper">
-            <div class="ticker"></div>
-            <div class="wheel-outer">
-                <canvas id="wheelCanvas"></canvas>
-                <div class="wheel-hub">🎯</div>
-            </div>
+        <div class="game-title">Would You Rather</div>
+        <div class="question-box">
+            <div class="question-text">Would You Rather...</div>
+            <div class="round-counter">Round ${state.round}</div>
         </div>
-        <div class="hold-ring" id="holdRing"></div>
-        <div class="bottom-text" id="bottomText">Hold the wheel to spin</div>
+        
+        ${myVote ? `
+            <div class="waiting-box">
+                <div class="waiting-text">Waiting for others...</div>
+                <div class="voters-list" id="votersList"></div>
+            </div>
+        ` : `
+            <div class="choice-container">
+                <div class="choice-box option-a" onclick="vote('A')">
+                    ${state.currentQuestion.optionA}
+                </div>
+                <div class="choice-box option-b" onclick="vote('B')">
+                    ${state.currentQuestion.optionB}
+                </div>
+            </div>
+        `}
     `;
-    initCanvas();
-    drawWheel(0);
-    updateHoldDots(state.holds || {});
-    setupWheelHold();
-}
-
-// ─── Canvas ───
-function initCanvas() {
-    wheelCanvas = document.getElementById('wheelCanvas');
-    if (!wheelCanvas) return;
-    const wrapper = document.getElementById('wheelWrapper');
-    const dpr = window.devicePixelRatio || 1;
-    const rect = wrapper.getBoundingClientRect();
-    wheelSize = rect.width - 16;
-    wheelCanvas.width = wheelSize * dpr;
-    wheelCanvas.height = wheelSize * dpr;
-    wheelCtx = wheelCanvas.getContext('2d');
-    wheelCtx.scale(dpr, dpr);
-}
-
-function drawWheel(rotation) {
-    if (!wheelCtx) return;
-    const cx = wheelSize / 2;
-    const cy = wheelSize / 2;
-    const r = wheelSize / 2 - 2;
-    const n = players.length;
-    const slice = (Math.PI * 2) / n;
-
-    wheelCtx.clearRect(0, 0, wheelSize, wheelSize);
-    wheelCtx.save();
-    wheelCtx.translate(cx, cy);
-    wheelCtx.rotate((rotation * Math.PI) / 180);
-
-    for (let i = 0; i < n; i++) {
-        const startAngle = i * slice - Math.PI / 2;
-        const endAngle = startAngle + slice;
-        const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length];
-
-        // Draw segment
-        wheelCtx.beginPath();
-        wheelCtx.moveTo(0, 0);
-        wheelCtx.arc(0, 0, r, startAngle, endAngle);
-        wheelCtx.closePath();
-        wheelCtx.fillStyle = color;
-        wheelCtx.fill();
-
-        // Darker edge for depth
-        const grad = wheelCtx.createRadialGradient(0, 0, r * 0.6, 0, 0, r);
-        grad.addColorStop(0, 'rgba(0,0,0,0)');
-        grad.addColorStop(1, 'rgba(0,0,0,0.2)');
-        wheelCtx.beginPath();
-        wheelCtx.moveTo(0, 0);
-        wheelCtx.arc(0, 0, r, startAngle, endAngle);
-        wheelCtx.closePath();
-        wheelCtx.fillStyle = grad;
-        wheelCtx.fill();
-
-        // Separator line
-        wheelCtx.beginPath();
-        wheelCtx.moveTo(0, 0);
-        wheelCtx.lineTo(Math.cos(startAngle) * r, Math.sin(startAngle) * r);
-        wheelCtx.strokeStyle = 'rgba(0,0,0,0.35)';
-        wheelCtx.lineWidth = 2;
-        wheelCtx.stroke();
-
-        // Text
-        wheelCtx.save();
-        const midAngle = startAngle + slice / 2;
-        wheelCtx.rotate(midAngle);
-        wheelCtx.textAlign = 'right';
-        wheelCtx.fillStyle = '#fff';
-        const fontSize = Math.max(11, Math.min(16, r / (n * 0.55)));
-        wheelCtx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-        wheelCtx.shadowColor = 'rgba(0,0,0,0.6)';
-        wheelCtx.shadowBlur = 4;
-        wheelCtx.shadowOffsetX = 1;
-        wheelCtx.shadowOffsetY = 1;
-
-        const name = players[i].name;
-        const maxLen = n > 6 ? 6 : 10;
-        const displayName = name.length > maxLen ? name.substring(0, maxLen) + '…' : name;
-        wheelCtx.fillText(displayName, r - 18, fontSize * 0.35);
-        wheelCtx.shadowBlur = 0;
-        wheelCtx.restore();
+    
+    if (myVote) {
+        updateVotersList(state.votes);
     }
-
-    wheelCtx.restore();
+    
+    // Check if everyone voted
+    if (isHost && totalVotes === players.length) {
+        setTimeout(() => showResults(), 1000);
+    }
 }
 
-function getHoveredPlayer(rotation) {
-    const n = players.length;
-    const slice = 360 / n;
-    let normalizedAngle = (360 - (rotation % 360) + 360) % 360;
-    const idx = Math.floor(normalizedAngle / slice) % n;
-    return players[idx];
-}
-
-// ─── Hold Dots ───
-function updateHoldDots(holds) {
-    const ring = document.getElementById('holdRing');
-    if (!ring) return;
-    ring.innerHTML = players.map(p => {
-        const ready = holds[p.playerId] === true;
+function updateVotersList(votes) {
+    const list = document.getElementById('votersList');
+    if (!list) return;
+    
+    list.innerHTML = players.map(p => {
+        const hasVoted = votes[p.playerId] !== undefined;
         return `
-            <div class="hold-dot ${ready ? 'ready' : ''}">
+            <div class="voter-dot ${hasVoted ? 'voted' : ''}">
                 <img src="${p.avatarUrl}" alt="">
-                <span class="dot-name">${p.name}</span>
+                <span class="voter-name">${p.name}</span>
             </div>
         `;
     }).join('');
 }
 
-// ─── Hold to Spin ───
-function setupWheelHold() {
-    const wrapper = document.getElementById('wheelWrapper');
-    if (!wrapper) return;
-
-    const start = (e) => {
-        e.preventDefault();
-        if (isHolding) return;
-        isHolding = true;
-        wrapper.classList.add('holding');
-        const bt = document.getElementById('bottomText');
-        if (bt) { bt.textContent = 'Holding...'; }
-        database.ref('rooms/' + roomCode + '/rouletteState/holds/' + playerData.playerId).set(true);
-    };
-
-    const end = (e) => {
-        if (e) e.preventDefault();
-        if (!isHolding) return;
-        isHolding = false;
-        wrapper.classList.remove('holding');
-        const bt = document.getElementById('bottomText');
-        if (bt) { bt.textContent = 'Hold the wheel to spin'; }
-        database.ref('rooms/' + roomCode + '/rouletteState/holds/' + playerData.playerId).set(false);
-    };
-
-    wrapper.addEventListener('touchstart', start, { passive: false });
-    wrapper.addEventListener('touchend', end, { passive: false });
-    wrapper.addEventListener('touchcancel', end, { passive: false });
-    wrapper.addEventListener('mousedown', start);
-    wrapper.addEventListener('mouseup', end);
-    wrapper.addEventListener('mouseleave', end);
-
-    // Listen for all holding
-    holdListenerRef = database.ref('rooms/' + roomCode + '/rouletteState/holds');
-    holdListenerRef.on('value', snap => {
-        const holds = snap.val() || {};
-        updateHoldDots(holds);
-        const allHolding = players.every(p => holds[p.playerId] === true);
-        if (allHolding && isHost) {
-            setTimeout(() => startSpin(), 600);
-        }
-    });
+async function vote(choice) {
+    await database.ref('rooms/' + roomCode + '/wyrState/votes/' + playerData.playerId).set(choice);
 }
 
-// ─── Spin ───
-async function startSpin() {
-    const winner = players[Math.floor(Math.random() * players.length)];
-    const winnerIndex = players.indexOf(winner);
-    const segmentAngle = 360 / players.length;
-    const baseSpins = 1800 + Math.random() * 720;
-    const targetAngle = winnerIndex * segmentAngle + segmentAngle / 2;
-    const finalRotation = baseSpins + (360 - targetAngle);
-
-    await database.ref('rooms/' + roomCode + '/rouletteState').update({
-        phase: 'spinning',
-        winnerId: winner.playerId,
-        rotation: finalRotation,
-        holds: {}
-    });
-
-    setTimeout(async () => {
-        await database.ref('rooms/' + roomCode + '/rouletteState').update({ phase: 'result' });
-    }, 4500);
+async function showResults() {
+    if (!isHost) return;
+    await database.ref('rooms/' + roomCode + '/wyrState').update({ phase: 'results' });
 }
 
-function buildSpinningUI(state) {
-    if (holdListenerRef) {
-        holdListenerRef.off();
-        holdListenerRef = null;
-    }
-    isHolding = false;
+function renderResults(state) {
+    const votes = state.votes || {};
+    const votesA = Object.values(votes).filter(v => v === 'A').length;
+    const votesB = Object.values(votes).filter(v => v === 'B').length;
+    const total = votesA + votesB;
+    const percentA = total > 0 ? Math.round((votesA / total) * 100) : 0;
+    const percentB = total > 0 ? Math.round((votesB / total) * 100) : 0;
+    
+    const votersA = players.filter(p => votes[p.playerId] === 'A');
+    const votersB = players.filter(p => votes[p.playerId] === 'B');
+    
     app.innerHTML = `
-        <div class="hover-name" id="hoverName">&nbsp;</div>
-        <div class="wheel-wrapper" id="wheelWrapper">
-            <div class="ticker"></div>
-            <div class="wheel-outer">
-                <canvas id="wheelCanvas"></canvas>
-                <div class="wheel-hub">🎯</div>
+        <div class="game-title">Results</div>
+        
+        ${state.revealed ? `
+            <div class="exposed-banner">🔥 EXPOSED 🔥</div>
+        ` : ''}
+        
+        <div class="results-box">
+            <div class="results-title">Round ${state.round}</div>
+            
+            <div class="result-option ${percentA >= percentB ? 'winner' : ''}">
+                <div class="result-option-text">${state.currentQuestion.optionA}</div>
+                <div class="result-percentage">${percentA}%</div>
+                ${state.revealed ? `
+                    <div class="result-voters">
+                        ${votersA.map(p => `
+                            <div class="result-voter">
+                                <img src="${p.avatarUrl}" alt="">
+                                ${p.name}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="result-option ${percentB > percentA ? 'winner' : ''}">
+                <div class="result-option-text">${state.currentQuestion.optionB}</div>
+                <div class="result-percentage">${percentB}%</div>
+                ${state.revealed ? `
+                    <div class="result-voters">
+                        ${votersB.map(p => `
+                            <div class="result-voter">
+                                <img src="${p.avatarUrl}" alt="">
+                                ${p.name}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
             </div>
         </div>
-        <div class="hold-ring" id="holdRing"></div>
-        <div class="bottom-text" id="bottomText">Spinning...</div>
-    `;
-    initCanvas();
-    drawWheel(0);
-}
-
-function triggerSpin(state) {
-    const targetRotation = state.rotation;
-    const duration = 4200;
-    const startTime = performance.now();
-    const startRot = 0;
-
-    if (animFrameId) cancelAnimationFrame(animFrameId);
-
-    function easeOutQuart(t) {
-        return 1 - Math.pow(1 - t, 4);
-    }
-
-    let lastHoveredId = null;
-
-    function animate(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = easeOutQuart(progress);
-        currentRotation = startRot + (targetRotation - startRot) * eased;
-
-        drawWheel(currentRotation);
-
-        // Update hover name
-        const hovered = getHoveredPlayer(currentRotation);
-        const nameEl = document.getElementById('hoverName');
-        if (nameEl && hovered) {
-            const isYou = hovered.playerId === playerData.playerId;
-
-            // Only update DOM when hovered player changes
-            if (hovered.playerId !== lastHoveredId) {
-                lastHoveredId = hovered.playerId;
-                nameEl.textContent = hovered.name;
-                nameEl.classList.add('active');
-                nameEl.classList.toggle('is-you', isYou);
-            }
-        }
-
-        if (progress < 1) {
-            animFrameId = requestAnimationFrame(animate);
-        }
-    }
-
-    animFrameId = requestAnimationFrame(animate);
-}
-
-// ─── Result ───
-function showResultOverlay(state) {
-    const winner = players.find(p => p.playerId === state.winnerId);
-    if (!winner) return;
-
-    const isYou = state.winnerId === playerData.playerId;
-
-    const overlay = document.getElementById('winnerOverlay');
-    const card = document.getElementById('winnerCard');
-
-    card.innerHTML = `
-        <img src="${winner.avatarUrl}" class="winner-avatar" alt="${winner.name}">
-        <div class="winner-label">${winner.name}</div>
-        <div class="winner-subtitle">${isYou ? "YOU WERE" : "WAS"} SELECTED!</div>
-        <div class="winner-actions">
-            <button class="btn btn-gold" onclick="spinAgain()">Spin Again</button>
+        
+        <div class="button-group">
+            ${isHost ? `
+                <button class="btn btn-primary" onclick="nextRound()">Next Round</button>
+            ` : `
+                <div class="waiting-box">
+                    <div class="waiting-text">Waiting for host...</div>
+                </div>
+            `}
             <button class="btn" onclick="backToLobby()">Back to Lobby</button>
         </div>
     `;
-
-    // Small delay so the spin finish is visible
-    setTimeout(() => overlay.classList.add('show'), 300);
 }
 
-function hideWinnerOverlay() {
-    document.getElementById('winnerOverlay').classList.remove('show');
-}
-
-// ─── Actions ───
-async function spinAgain() {
-    document.body.classList.remove('you-selected');
-    lastPhase = null;
-    if (animFrameId) cancelAnimationFrame(animFrameId);
-    if (isHost) {
-        await database.ref('rooms/' + roomCode + '/rouletteState').update({
-            phase: 'waiting',
-            holds: {},
-            winnerId: null,
-            rotation: 0
-        });
-    } else {
-        hideWinnerOverlay();
-    }
+async function nextRound() {
+    if (!isHost) return;
+    roundNumber++;
+    await startNewRound();
 }
 
 async function backToLobby() {
     if (isHost) {
         await database.ref('rooms/' + roomCode).update({ state: 'lobby' });
-        await database.ref('rooms/' + roomCode + '/rouletteState').remove();
+        await database.ref('rooms/' + roomCode + '/wyrState').remove();
     }
     window.location.href = `lobby.html?room=${roomCode}`;
 }
@@ -832,22 +785,15 @@ async function endGame() {
     const confirmed = confirm('Are you sure you want to end the game and return to the lobby?');
     if (confirmed) {
         await database.ref('rooms/' + roomCode).update({ state: 'lobby' });
-        await database.ref('rooms/' + roomCode + '/rouletteState').remove();
+        await database.ref('rooms/' + roomCode + '/wyrState').remove();
         window.location.href = `lobby.html?room=${roomCode}`;
     }
 }
 
-window.spinAgain = spinAgain;
+window.vote = vote;
+window.nextRound = nextRound;
 window.backToLobby = backToLobby;
 window.endGame = endGame;
-
-// ─── Resize ───
-window.addEventListener('resize', () => {
-    if (document.getElementById('wheelCanvas')) {
-        initCanvas();
-        drawWheel(currentRotation);
-    }
-});
 </script>
 </body>
 </html>
