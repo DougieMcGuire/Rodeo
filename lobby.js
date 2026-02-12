@@ -58,9 +58,9 @@ const gameUrls = {
     'charades': 'charades.html',
     'roulette': 'roulette.html',
     'would-you-rather': 'wyr.html',  // ✅ CORRECT
-    'truth-or-dare': 'game.html',
-    'wavelength': 'game.html',
-    'misfit': 'game.html'
+    'truth-or-dare': 'tod.html',
+    'wavelength': 'wave.html',
+    'misfit': 'misfit.html'
 };
             
             const gameUrl = gameUrls[room.gameType] || 'game.html';
