@@ -24,6 +24,7 @@
             background: #8b0000;
             -webkit-user-select: none;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #app-frame {
@@ -33,84 +34,94 @@
             width: 100%;
             height: 100%;
             border: none;
-            background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
+            background: #8b0000;
         }
 
         #install-prompt {
             position: fixed;
-            top: 0;
+            bottom: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.85);
             display: none;
-            align-items: flex-end;
-            justify-content: center;
             z-index: 999999;
             padding-bottom: env(safe-area-inset-bottom);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
 
         #install-prompt.show {
-            display: flex;
+            display: block;
         }
 
         .prompt-content {
             background: white;
             border-radius: 20px 20px 0 0;
-            padding: 30px 20px;
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
+            padding: 25px 20px;
+            position: relative;
         }
 
-        .prompt-icon {
-            font-size: 4rem;
-            margin-bottom: 15px;
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 2rem;
+            color: #999;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
         }
 
-        .prompt-title {
-            font-size: 1.8rem;
-            font-weight: 900;
-            margin-bottom: 10px;
-        }
-
-        .prompt-subtitle {
-            font-size: 1rem;
-            color: #666;
-            margin-bottom: 25px;
-        }
-
-        .install-steps {
-            background: rgba(255, 59, 48, 0.05);
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px solid #FF3B30;
+        .prompt-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
             margin-bottom: 20px;
         }
 
+        .prompt-icon {
+            font-size: 3rem;
+        }
+
+        .prompt-text h1 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+
+        .prompt-text p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .install-box {
+            background: rgba(255, 59, 48, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #FF3B30;
+        }
+
         .step {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
-            margin: 10px 0;
+            margin: 8px 0;
+            color: #000;
         }
 
         .share-icon {
             display: inline-block;
             background: #FF3B30;
             color: white;
-            padding: 3px 10px;
+            padding: 2px 8px;
             border-radius: 6px;
             font-size: 1.2rem;
-        }
-
-        .dismiss-btn {
-            background: transparent;
-            border: 2px solid #ddd;
-            padding: 12px 30px;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #666;
+            margin: 0 3px;
         }
     </style>
 </head>
@@ -119,22 +130,24 @@
     
     <div id="install-prompt">
         <div class="prompt-content">
-            <div class="prompt-icon">🤠</div>
-            <h1 class="prompt-title">Install RODEO</h1>
-            <p class="prompt-subtitle">Quick 2-tap install for full-screen play</p>
+            <button class="close-btn" onclick="dismissPrompt()">×</button>
             
-            <div class="install-steps">
+            <div class="prompt-header">
+                <div class="prompt-icon">🤠</div>
+                <div class="prompt-text">
+                    <h1>Install RODEO</h1>
+                    <p>Quick 2-tap install for full-screen play</p>
+                </div>
+            </div>
+            
+            <div class="install-box">
                 <div class="step">1. Tap <span class="share-icon">⬆️</span> at the bottom</div>
                 <div class="step">2. Select "Add to Home Screen"</div>
             </div>
-            
-            <button class="dismiss-btn" onclick="dismissPrompt()">Continue in browser</button>
         </div>
     </div>
 
     <script>
-        console.log('mobile.html loaded');
-
         const iframe = document.getElementById('app-frame');
         const installPrompt = document.getElementById('install-prompt');
 
@@ -143,51 +156,47 @@
                             window.matchMedia('(display-mode: standalone)').matches;
         
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const isInIframe = window.self !== window.top;
 
-        console.log('Is mobile:', isMobile);
-        console.log('Is standalone:', isStandalone);
-
-        // Show install prompt if mobile and NOT standalone
-        if (isMobile && !isStandalone) {
-            installPrompt.classList.add('show');
+        // Only show prompt if mobile, NOT standalone, and NOT in iframe
+        if (isMobile && !isStandalone && !isInIframe) {
+            // Delay showing prompt by 500ms so page loads smoothly
+            setTimeout(() => {
+                installPrompt.classList.add('show');
+            }, 500);
         }
 
         function dismissPrompt() {
             installPrompt.classList.remove('show');
         }
 
-        // Listen for navigation inside iframe
-        window.addEventListener('message', function(e) {
-            if (e.data && e.data.type === 'navigate') {
-                console.log('Navigation request:', e.data.url);
-                iframe.src = e.data.url;
+        // Tap outside to dismiss
+        installPrompt.addEventListener('click', function(e) {
+            if (e.target === installPrompt) {
+                dismissPrompt();
             }
         });
 
-        // Prevent zoom
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-        });
-
-        document.addEventListener('gesturechange', function(e) {
-            e.preventDefault();
-        });
-
-        document.addEventListener('gestureend', function(e) {
-            e.preventDefault();
-        });
-
-        // Prevent double-tap zoom
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(e) {
-            const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
+        // Optimize: Prevent unnecessary event listeners
+        const preventZoom = function(e) {
+            if (e.scale !== 1) {
                 e.preventDefault();
             }
-            lastTouchEnd = now;
-        }, false);
+        };
 
-        console.log('mobile.html ready');
+        document.addEventListener('gesturestart', preventZoom, { passive: false });
+        document.addEventListener('gesturechange', preventZoom, { passive: false });
+        document.addEventListener('gestureend', preventZoom, { passive: false });
+
+        // Prevent double-tap zoom (optimized)
+        let lastTap = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTap <= 300) {
+                e.preventDefault();
+            }
+            lastTap = now;
+        }, { passive: false });
     </script>
 </body>
 </html>
