@@ -45,6 +45,47 @@
         makeStandaloneApp();
     }
 
+    // Register service worker for auto-updates (works in browser AND standalone)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                    console.log('[SW] Registered:', registration);
+                    
+                    // Check for updates every 30 seconds when app is open
+                    setInterval(() => {
+                        registration.update();
+                    }, 30000);
+
+                    // Listen for updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        console.log('[SW] Update found!');
+                        
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New version available
+                                console.log('[SW] New version ready!');
+                                
+                                // Auto-reload to get new version
+                                newWorker.postMessage('SKIP_WAITING');
+                                window.location.reload();
+                            }
+                        });
+                    });
+                })
+                .catch((error) => {
+                    console.log('[SW] Registration failed:', error);
+                });
+        });
+
+        // Reload when new service worker takes control
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('[SW] Controller changed, reloading...');
+            window.location.reload();
+        });
+    }
+
     function showInstallPrompt() {
         console.log('Creating install prompt...');
         
