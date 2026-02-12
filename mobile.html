@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="transparent">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     <title>RODEO</title>
     <style>
         * { 
@@ -39,6 +40,9 @@
             height: 100%;
             min-height: 100vh;
             min-height: -webkit-fill-available;
+            /* Force iframe to extend into safe areas */
+            padding-bottom: env(safe-area-inset-bottom);
+            margin-bottom: calc(-1 * env(safe-area-inset-bottom));
             border: none; 
             background: transparent;
             z-index: 1;
@@ -242,6 +246,32 @@
         
         // Initialize
         showInstallPrompt();
+        
+        // Dynamically update theme color based on iframe content (for Safari)
+        function updateThemeColor() {
+            try {
+                const iframe = document.getElementById('app');
+                if (iframe && iframe.contentWindow) {
+                    const iframeDoc = iframe.contentWindow.document;
+                    const bgColor = window.getComputedStyle(iframeDoc.body).backgroundColor;
+                    
+                    // Update theme-color meta tag
+                    let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+                    if (themeColorMeta && bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
+                        themeColorMeta.setAttribute('content', bgColor);
+                    }
+                }
+            } catch (e) {
+                // Cross-origin restriction, ignore
+            }
+        }
+        
+        // Try to update theme color when iframe loads
+        document.getElementById('app').addEventListener('load', function() {
+            setTimeout(updateThemeColor, 100);
+            setTimeout(updateThemeColor, 500);
+            setTimeout(updateThemeColor, 1000);
+        });
         
         // Message from iframe to refresh if needed
         window.addEventListener('message', function(e) {
