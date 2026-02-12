@@ -43,6 +43,134 @@
     // Extra optimizations for standalone mode
     if (isStandalone) {
         makeStandaloneApp();
+        
+        // Enable iframe navigation ONLY if we're on index.html
+        const isIndexPage = window.location.pathname === '/' || 
+                           window.location.pathname.includes('index.html') ||
+                           window.location.pathname.endsWith('/');
+        
+        if (isIndexPage) {
+            console.log('Enabling iframe navigation on index.html...');
+            enableIframeMode();
+        }
+    }
+
+    function enableIframeMode() {
+        let iframe = null;
+        
+        // Check if we should load something in iframe on page load
+        const urlParams = new URLSearchParams(window.location.search);
+        const iframePage = urlParams.get('page');
+        
+        if (iframePage) {
+            loadInIframe(decodeURIComponent(iframePage));
+        }
+        
+        // Intercept ALL clicks
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('button, a');
+            if (!target) return;
+            
+            // Get onclick attribute
+            const onclick = target.getAttribute('onclick');
+            if (onclick && onclick.includes('window.location')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Extract URL from onclick
+                const match = onclick.match(/['"`]([^'"`]+)['"`]/);
+                if (match) {
+                    console.log('Intercepted onclick, loading:', match[1]);
+                    loadInIframe(match[1]);
+                }
+                return false;
+            }
+            
+            // Get href
+            const href = target.getAttribute('href');
+            if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Intercepted href, loading:', href);
+                loadInIframe(href);
+                return false;
+            }
+        }, true);
+        
+        // Override window.location.href for JavaScript navigation
+        const originalLocationHref = window.location.href;
+        Object.defineProperty(window.location, 'href', {
+            set: function(url) {
+                console.log('Intercepted location.href:', url);
+                if (url.includes('index.html') || url === '/') {
+                    // Going to index, clear iframe
+                    if (iframe) {
+                        iframe.remove();
+                        iframe = null;
+                        document.querySelector('.container').style.display = '';
+                    }
+                } else {
+                    loadInIframe(url);
+                }
+            },
+            get: function() {
+                return window.location.toString();
+            }
+        });
+        
+        function loadInIframe(url) {
+            console.log('Loading in iframe:', url);
+            
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'app-iframe';
+                iframe.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    border: none;
+                    z-index: 999999;
+                    background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
+                `;
+                document.body.appendChild(iframe);
+                
+                // Hide main content
+                document.querySelector('.container').style.display = 'none';
+            }
+            
+            // Set src
+            iframe.src = url;
+            
+            // Update URL without reload
+            const newUrl = '?page=' + encodeURIComponent(url);
+            window.history.pushState({}, '', newUrl);
+        }
+        
+        // Handle back button
+        window.addEventListener('popstate', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const page = urlParams.get('page');
+            
+            if (!page) {
+                // Back to index
+                if (iframe) {
+                    iframe.remove();
+                    iframe = null;
+                    document.querySelector('.container').style.display = '';
+                }
+            } else {
+                // Load different page in iframe
+                if (iframe) {
+                    iframe.src = decodeURIComponent(page);
+                } else {
+                    loadInIframe(decodeURIComponent(page));
+                }
+            }
+        });
+        
+        console.log('Iframe mode enabled');
     }
 
     function showInstallPrompt() {
