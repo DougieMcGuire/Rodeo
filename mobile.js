@@ -1,6 +1,7 @@
 // Mobile detection and PWA setup
 (function() {
-    console.log('mobile.js loaded');
+    console.log('===== MOBILE.JS LOADED =====');
+    console.log('User agent:', navigator.userAgent);
 
     // Clear any old localStorage data from previous version
     localStorage.removeItem('pwa-prompt-dismissed');
@@ -15,7 +16,10 @@
     
     console.log('Is mobile:', isMobile);
     console.log('Is standalone:', isStandalone);
+    console.log('window.navigator.standalone:', window.navigator.standalone);
+    console.log('display-mode standalone:', window.matchMedia('(display-mode: standalone)').matches);
     console.log('Current path:', window.location.pathname);
+    console.log('Current URL:', window.location.href);
     console.log('Current href:', window.location.href);
 
     // ALWAYS optimize for mobile (browser or standalone)
@@ -42,6 +46,7 @@
 
     // Extra optimizations for standalone mode
     if (isStandalone) {
+        console.log('!!! STANDALONE MODE DETECTED !!!');
         makeStandaloneApp();
         
         // Enable iframe navigation ONLY if we're on index.html
@@ -49,10 +54,16 @@
                            window.location.pathname.includes('index.html') ||
                            window.location.pathname.endsWith('/');
         
+        console.log('Is index page:', isIndexPage);
+        
         if (isIndexPage) {
-            console.log('Enabling iframe navigation on index.html...');
+            console.log('!!! ENABLING IFRAME MODE !!!');
             enableIframeMode();
+        } else {
+            console.log('Not index page, skipping iframe mode');
         }
+    } else {
+        console.log('Not standalone, skipping iframe mode');
     }
 
     function enableIframeMode() {
