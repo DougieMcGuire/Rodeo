@@ -1,0 +1,15 @@
+{
+  "name": "RODEO",
+  "short_name": "RODEO",
+  "start_url": "mobile.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 128x128 256x256 512x512",
+      "type": "image/x-icon"
+    }
+  ]
+}
