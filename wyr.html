@@ -66,6 +66,12 @@ body::before {
     gap: 20px;
 }
 
+.spinner-container {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
 .spinner {
     width: 60px;
     height: 60px;
@@ -73,6 +79,15 @@ body::before {
     border-top: 8px solid white;
     border-radius: 50%;
     animation: spin 1s linear infinite;
+}
+
+.spinner-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
 }
 
 @keyframes spin {
@@ -521,7 +536,10 @@ const app = document.getElementById('app');
 function showLoading() {
     app.innerHTML = `
         <div class="loading-screen">
-            <div class="spinner"></div>
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <img src="favicon.ico" class="spinner-icon" alt="">
+            </div>
             <div class="loading-text">Loading game...</div>
         </div>
     `;
@@ -781,7 +799,7 @@ function renderResults(state) {
                     <div class="waiting-text">Waiting for host...</div>
                 </div>
             `}
-            <button class="btn" onclick="backToLobby()">Back to Lobby</button>
+            <button class="btn" onclick="backToLobby()">End Game</button>
         </div>
     `;
 }
@@ -794,19 +812,19 @@ async function nextRound() {
 
 async function backToLobby() {
     if (isHost) {
-        await database.ref('rooms/' + roomCode).update({ state: 'lobby' });
-        await database.ref('rooms/' + roomCode + '/wyrState').remove();
+        await database.ref('rooms/' + roomCode).remove();
     }
-    window.location.href = `lobby.html?room=${roomCode}`;
+    clearCurrentRoom();
+    window.location.href = 'index.html';
 }
 
 async function endGame() {
     if (!isHost) return;
-    const confirmed = confirm('Are you sure you want to end the game and return to the lobby?');
+    const confirmed = confirm('Are you sure you want to end the game and return home?');
     if (confirmed) {
-        await database.ref('rooms/' + roomCode).update({ state: 'lobby' });
-        await database.ref('rooms/' + roomCode + '/wyrState').remove();
-        window.location.href = `lobby.html?room=${roomCode}`;
+        await database.ref('rooms/' + roomCode).remove();
+        clearCurrentRoom();
+        window.location.href = 'index.html';
     }
 }
 
