@@ -1,844 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Roulette - RODEO</title>
-    <link rel="icon" href="favicon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@600;800;900&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RODEO Roulette</title>
 
-        :root {
-            --bg: #111111;
-            --bg-light: #1a1a1a;
-            --surface: #222222;
-            --text: #ffffff;
-            --text-dim: #888888;
-            --accent: #ff2d2d;
-            --gold: #FFD700;
-            --green: #32CD32;
-        }
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap');
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            min-height: 100dvh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text);
-            overflow: hidden;
-            position: relative;
-            transition: background 0.4s ease;
-        }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-        body.flash-red {
-            background: #2a0000;
-        }
+:root{
+    --bg:#ffefc2;
+    --black:#000;
+    --red:#ff3b30;
+    --yellow:#ffd400;
+    --blue:#3fa7ff;
+    --green:#2ecc71;
+}
 
-        body.flash-red .vignette {
-            opacity: 1;
-            background: radial-gradient(ellipse at center, transparent 30%, rgba(255, 0, 0, 0.25) 100%);
-        }
+body{
+    font-family:'Fredoka',sans-serif;
+    background:var(--bg);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+}
 
-        .vignette {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.6;
-            background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
-            transition: all 0.4s ease;
-        }
+.app{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+    width:100%;
+}
 
-        .noise {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.03;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-            background-repeat: repeat;
-            background-size: 256px;
-        }
+.hover-name{
+    font-size:1.5rem;
+    font-weight:700;
+    padding:8px 18px;
+    background:white;
+    border:4px solid black;
+    border-radius:14px;
+    min-height:48px;
+}
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100dvh;
-            padding: 20px;
-            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
+.wheel-wrapper{
+    position:relative;
+    width:320px;
+    height:320px;
+}
 
-        body.zoomed .container {
-            transform: scale(1.08);
-        }
+.wheel-outer{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    border:8px solid black;
+    overflow:hidden;
+    background:white;
+}
 
-        /* ── Current hover name ── */
-        .hover-name {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 2.4rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            min-height: 3rem;
-            margin-bottom: 16px;
-            transition: color 0.15s ease, transform 0.15s ease;
-            text-align: center;
-            opacity: 0;
-        }
+canvas{
+    width:100%;
+    height:100%;
+}
 
-        .hover-name.visible {
-            opacity: 1;
-        }
+.ticker{
+    position:absolute;
+    top:-18px;
+    left:50%;
+    transform:translateX(-50%);
+    width:0;
+    height:0;
+    border-left:18px solid transparent;
+    border-right:18px solid transparent;
+    border-top:36px solid red;
+}
 
-        .hover-name.is-you {
-            color: var(--accent);
-            transform: scale(1.1);
-            text-shadow: 0 0 30px rgba(255, 45, 45, 0.5);
-        }
+.bottom-text{
+    font-weight:700;
+    font-size:1rem;
+}
 
-        /* ── Wheel ── */
-        .wheel-wrapper {
-            position: relative;
-            width: min(80vw, 340px);
-            aspect-ratio: 1;
-            margin: 0 auto;
-            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            cursor: pointer;
-        }
+.btn{
+    padding:14px 28px;
+    font-weight:700;
+    border:4px solid black;
+    border-radius:12px;
+    cursor:pointer;
+    background:var(--yellow);
+}
 
-        body.zoomed .wheel-wrapper {
-            transform: scale(1.05);
-        }
+.btn:active{
+    transform:scale(.95);
+}
 
-        .wheel-outer {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            position: relative;
-            background: conic-gradient(#333 0deg, #222 360deg);
-            padding: 6px;
-            box-shadow: 
-                0 0 0 3px rgba(255,255,255,0.06),
-                0 0 60px rgba(0,0,0,0.8),
-                inset 0 0 30px rgba(0,0,0,0.4);
-        }
+.winner-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.8);
+    display:none;
+    justify-content:center;
+    align-items:center;
+}
 
-        .wheel-inner {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            overflow: hidden;
-            position: relative;
-        }
+.winner-card{
+    background:white;
+    padding:30px;
+    border:6px solid black;
+    border-radius:20px;
+    text-align:center;
+}
 
-        .wheel-segments {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            will-change: transform;
-        }
-
-        .wheel-segments.animate-spin {
-            transition: transform 5s cubic-bezier(0.15, 0.6, 0.15, 1);
-        }
-
-        .segment {
-            position: absolute;
-            width: 50%;
-            height: 50%;
-            left: 50%;
-            top: 50%;
-            transform-origin: 0 0;
-            overflow: hidden;
-        }
-
-        .segment-fill {
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            left: 0;
-            top: 0;
-            background: var(--seg-color);
-        }
-
-        .segment-content {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding-left: 14px;
-        }
-
-        .segment-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid rgba(0,0,0,0.3);
-            flex-shrink: 0;
-        }
-
-        .segment-name {
-            color: white;
-            font-weight: 900;
-            font-size: 0.7rem;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
-            white-space: nowrap;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Center hub */
-        .wheel-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            background: var(--bg);
-            border-radius: 50%;
-            border: 4px solid #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-        }
-
-        .wheel-center-dot {
-            width: 20px;
-            height: 20px;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 15px rgba(255, 45, 45, 0.6);
-        }
-
-        /* Pointer / Ticker */
-        .wheel-pointer {
-            position: absolute;
-            top: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 11;
-            width: 0;
-            height: 0;
-            border-left: 14px solid transparent;
-            border-right: 14px solid transparent;
-            border-top: 30px solid var(--accent);
-            filter: drop-shadow(0 4px 10px rgba(255, 45, 45, 0.5));
-        }
-
-        /* ── Hold status ring ── */
-        .hold-ring {
-            position: absolute;
-            inset: -12px;
-            border-radius: 50%;
-            border: 3px dashed rgba(255,255,255,0.1);
-            pointer-events: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .hold-ring.all-holding {
-            border-color: var(--green);
-            border-style: solid;
-            box-shadow: 0 0 30px rgba(50, 205, 50, 0.3);
-        }
-
-        /* ── Hold indicators ── */
-        .hold-status {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 24px;
-        }
-
-        .hold-pip {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: var(--surface);
-            border-radius: 100px;
-            border: 2px solid #333;
-            transition: all 0.3s ease;
-        }
-
-        .hold-pip.ready {
-            border-color: var(--green);
-            background: rgba(50, 205, 50, 0.1);
-        }
-
-        .hold-pip img {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-        }
-
-        .hold-pip span {
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .hold-pip.ready span {
-            color: var(--green);
-        }
-
-        /* ── Instruction text ── */
-        .instruction {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.3rem;
-            letter-spacing: 3px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            margin-top: 20px;
-            text-align: center;
-            transition: color 0.3s ease;
-        }
-
-        .instruction.active {
-            color: var(--green);
-        }
-
-        /* ── Winner result ── */
-        .result-section {
-            text-align: center;
-            margin-top: 30px;
-        }
-
-        .winner-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            padding: 24px 40px;
-            background: linear-gradient(135deg, rgba(255, 45, 45, 0.15), rgba(255, 215, 0, 0.1));
-            border: 2px solid rgba(255, 45, 45, 0.3);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        .winner-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 4px solid var(--accent);
-            box-shadow: 0 0 30px rgba(255, 45, 45, 0.4);
-        }
-
-        .winner-name {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 2.8rem;
-            letter-spacing: 4px;
-            color: var(--accent);
-        }
-
-        .winner-label {
-            font-size: 0.85rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            color: var(--text-dim);
-        }
-
-        /* ── Buttons ── */
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 14px 32px;
-            border: 3px solid #333;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 900;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background: var(--surface);
-            color: var(--text);
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            background: #2a2a2a;
-            border-color: #555;
-            transform: translateY(-2px);
-        }
-
-        .btn:active {
-            transform: translateY(1px);
-        }
-
-        .btn-accent {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: white;
-        }
-
-        .btn-accent:hover {
-            background: #e02525;
-        }
-
-        /* ── Spinner loading ── */
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #333;
-            border-top: 3px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* ── Hold prompt pulse ── */
-        .hold-prompt {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.1rem;
-            letter-spacing: 3px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            margin-top: 16px;
-            animation: breathe 2s ease-in-out infinite;
-        }
-
-        @keyframes breathe {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1; }
-        }
-
-        /* ── Tick sound visual feedback ── */
-        .wheel-pointer.tick {
-            transform: translateX(-50%) scale(1.15);
-            filter: drop-shadow(0 4px 15px rgba(255, 45, 45, 0.8));
-        }
-
-        @media (max-width: 380px) {
-            .wheel-wrapper {
-                width: min(85vw, 300px);
-            }
-            .segment-name { font-size: 0.6rem; }
-            .segment-avatar { width: 22px; height: 22px; }
-            .hover-name { font-size: 2rem; }
-        }
-
-        @media (min-height: 800px) {
-            .wheel-wrapper {
-                width: min(80vw, 380px);
-            }
-        }
-    </style>
+.winner-avatar{
+    width:110px;
+    height:110px;
+    border-radius:50%;
+    border:6px solid black;
+    margin-bottom:15px;
+}
+</style>
 </head>
+
 <body>
-    <div class="vignette"></div>
-    <div class="noise"></div>
 
-    <div class="container" id="app">
-        <div class="loading-spinner"></div>
-    </div>
+<div class="app" id="app"></div>
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<div class="winner-overlay" id="winnerOverlay">
+    <div class="winner-card" id="winnerCard"></div>
+</div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBaJXCqGmUaGumvcWNE7w4FOOzTJVDH-yg",
-            authDomain: "polorfriends.firebaseapp.com",
-            databaseURL: "https://polorfriends-default-rtdb.firebaseio.com",
-            projectId: "polorfriends",
-            storageBucket: "polorfriends.firebasestorage.app",
-            messagingSenderId: "328546525972",
-            appId: "1:328546525972:web:a6fe0f0a45b4565a7b1801",
-            measurementId: "G-07B4713DQQ"
-        };
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyBaJXCqGmUaGumvcWNE7w4FOOzTJVDH-yg",
+    authDomain: "polorfriends.firebaseapp.com",
+    databaseURL: "https://polorfriends-default-rtdb.firebaseio.com",
+    projectId: "polorfriends",
+    storageBucket: "polorfriends.firebasestorage.app",
+    messagingSenderId: "328546525972",
+    appId: "1:328546525972:web:a6fe0f0a45b4565a7b1801"
+};
 
-        // ── Utils ──
-        function getPlayerData() {
-            const d = localStorage.getItem('playerData');
-            return d ? JSON.parse(d) : null;
-        }
-        function getCurrentRoom() { return localStorage.getItem('currentRoom'); }
-        function clearCurrentRoom() { localStorage.removeItem('currentRoom'); }
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
-        // ── State ──
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomCode = urlParams.get('room') || getCurrentRoom();
-        const playerData = getPlayerData();
-        if (!roomCode || !playerData) window.location.href = 'index.html';
+function getPlayerData(){ return JSON.parse(localStorage.getItem('playerData')); }
+function getCurrentRoom(){ return localStorage.getItem('currentRoom'); }
 
-        const app = document.getElementById('app');
-        let players = [];
-        let isHost = false;
-        let isHolding = false;
-        let currentRotation = 0;
-        let lastSegmentIndex = -1;
-        let holdListenerRef = null;
+const roomCode = new URLSearchParams(window.location.search).get('room') || getCurrentRoom();
+const playerData = getPlayerData();
+if(!roomCode || !playerData) location.href='index.html';
 
-        const segColors = [
-            '#c0392b', '#e67e22', '#f1c40f', '#27ae60',
-            '#2980b9', '#8e44ad', '#e74c3c', '#1abc9c'
-        ];
+let players=[];
+let isHost=false;
+let wheelCtx,wheelSize,currentRotation=0,anim;
 
-        // ── Init ──
-        database.ref('rooms/' + roomCode).once('value', snap => {
-            const room = snap.val();
-            if (!room) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
-            isHost = room.hostId === playerData.playerId;
+const COLORS=['#ff595e','#ffca3a','#8ac926','#1982c4','#6a4c93'];
 
-            database.ref('rooms/' + roomCode + '/players').once('value', snap => {
-                const pd = snap.val();
-                if (!pd) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
-                players = Object.values(pd).sort((a, b) => a.joinOrder - b.joinOrder);
+const app=document.getElementById('app');
 
-                if (isHost) {
-                    database.ref('rooms/' + roomCode + '/rouletteState').set({
-                        phase: 'waiting',
-                        holds: {},
-                        winnerId: null,
-                        rotation: 0
-                    });
-                }
-                attachListener();
+database.ref('rooms/'+roomCode).once('value',snap=>{
+    const room=snap.val();
+    isHost=(room.hostId===playerData.playerId);
+
+    database.ref('rooms/'+roomCode+'/players').once('value',snap=>{
+        players=Object.values(snap.val());
+        if(isHost){
+            database.ref('rooms/'+roomCode+'/rouletteState').set({
+                phase:'waiting',
+                winnerId:null,
+                rotation:0
             });
+        }
+        listenState();
+    });
+});
+
+function listenState(){
+    database.ref('rooms/'+roomCode+'/rouletteState').on('value',snap=>{
+        const state=snap.val();
+        if(state.phase==='waiting') buildWaiting();
+        if(state.phase==='spinning') spin(state.rotation);
+        if(state.phase==='result') showResult(state.winnerId);
+    });
+}
+
+function buildWaiting(){
+    app.innerHTML=`
+        <div class="hover-name" id="hoverName">Ready?</div>
+        <div class="wheel-wrapper">
+            <div class="ticker"></div>
+            <div class="wheel-outer">
+                <canvas id="wheelCanvas"></canvas>
+            </div>
+        </div>
+        <button class="btn" onclick="startSpin()">SPIN</button>
+    `;
+    initCanvas();
+    drawWheel(0);
+}
+
+function initCanvas(){
+    const canvas=document.getElementById('wheelCanvas');
+    wheelSize=320;
+    canvas.width=wheelSize;
+    canvas.height=wheelSize;
+    wheelCtx=canvas.getContext('2d');
+}
+
+function drawWheel(rotation){
+    const n=players.length;
+    const slice=2*Math.PI/n;
+    const r=wheelSize/2;
+
+    wheelCtx.clearRect(0,0,wheelSize,wheelSize);
+    wheelCtx.save();
+    wheelCtx.translate(r,r);
+    wheelCtx.rotate(rotation*Math.PI/180);
+
+    for(let i=0;i<n;i++){
+        wheelCtx.beginPath();
+        wheelCtx.moveTo(0,0);
+        wheelCtx.arc(0,0,r,i*slice,i*slice+slice);
+        wheelCtx.fillStyle=COLORS[i%COLORS.length];
+        wheelCtx.fill();
+        wheelCtx.strokeStyle='black';
+        wheelCtx.lineWidth=4;
+        wheelCtx.stroke();
+
+        wheelCtx.save();
+        wheelCtx.rotate(i*slice+slice/2);
+        wheelCtx.fillStyle='black';
+        wheelCtx.font='bold 14px Fredoka';
+        wheelCtx.textAlign='right';
+        wheelCtx.fillText(players[i].name,r-15,5);
+        wheelCtx.restore();
+    }
+    wheelCtx.restore();
+}
+
+function startSpin(){
+    if(!isHost) return;
+
+    const winner=players[Math.floor(Math.random()*players.length)];
+    const idx=players.indexOf(winner);
+    const segment=360/players.length;
+    const finalRotation=1440+(360-(idx*segment+segment/2));
+
+    database.ref('rooms/'+roomCode+'/rouletteState').update({
+        phase:'spinning',
+        winnerId:winner.playerId,
+        rotation:finalRotation
+    });
+
+    setTimeout(()=>{
+        database.ref('rooms/'+roomCode+'/rouletteState').update({
+            phase:'result'
         });
+    },2000);
+}
 
-        function attachListener() {
-            database.ref('rooms/' + roomCode + '/rouletteState').on('value', snap => {
-                const state = snap.val();
-                if (!state) { renderLoading(); return; }
-                render(state);
-            });
-        }
+function spin(target){
+    const start=performance.now();
+    const duration=1800;
 
-        // ── Audio tick (Web Audio API for mobile) ──
-        let audioCtx = null;
-        function playTick() {
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.frequency.value = 800 + Math.random() * 400;
-                osc.type = 'sine';
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-                osc.start(audioCtx.currentTime);
-                osc.stop(audioCtx.currentTime + 0.05);
-            } catch(e) {}
-        }
+    function animate(t){
+        const progress=Math.min((t-start)/duration,1);
+        const eased=1-Math.pow(1-progress,3);
+        currentRotation=target*eased;
+        drawWheel(currentRotation);
 
-        // ── Rendering ──
-        function renderLoading() {
-            app.innerHTML = '<div class="loading-spinner"></div>';
-        }
+        if(progress<1) anim=requestAnimationFrame(animate);
+    }
+    anim=requestAnimationFrame(animate);
+}
 
-        function render(state) {
-            if (state.phase === 'waiting') renderWaiting(state);
-            else if (state.phase === 'spinning') renderSpinning(state);
-            else if (state.phase === 'result') renderResult(state);
-        }
+function showResult(id){
+    const winner=players.find(p=>p.playerId===id);
+    const overlay=document.getElementById('winnerOverlay');
+    const card=document.getElementById('winnerCard');
 
-        function buildWheel(rotation = 0, spinning = false, interactive = false) {
-            const n = players.length;
-            const segAngle = 360 / n;
+    card.innerHTML=`
+        <img src="${winner.avatarUrl}" class="winner-avatar">
+        <h2>${winner.name}</h2>
+        <button class="btn" onclick="resetGame()">SPIN AGAIN</button>
+    `;
 
-            let segs = '';
-            players.forEach((p, i) => {
-                const angle = i * segAngle;
-                const color = segColors[i % segColors.length];
-                segs += `
-                    <div class="segment" style="transform:rotate(${angle}deg) skewY(${-90 + segAngle}deg); --seg-color:${color};">
-                        <div class="segment-fill"></div>
-                        <div class="segment-content" style="transform:skewY(${90 - segAngle}deg) rotate(${segAngle/2}deg);">
-                            <img src="${p.avatarUrl}" class="segment-avatar" draggable="false">
-                            <span class="segment-name">${p.name}</span>
-                        </div>
-                    </div>`;
-            });
+    overlay.style.display='flex';
+}
 
-            return `
-                <div class="wheel-wrapper" id="wheelWrapper">
-                    <div class="wheel-pointer" id="pointer"></div>
-                    <div class="hold-ring" id="holdRing"></div>
-                    <div class="wheel-outer">
-                        <div class="wheel-inner">
-                            <div class="wheel-segments${spinning ? ' animate-spin' : ''}" id="wheelSegments" style="transform:rotate(${rotation}deg);">
-                                ${segs}
-                            </div>
-                            <div class="wheel-center"><div class="wheel-center-dot"></div></div>
-                        </div>
-                    </div>
-                </div>`;
-        }
+function resetGame(){
+    if(isHost){
+        database.ref('rooms/'+roomCode+'/rouletteState').update({
+            phase:'waiting',
+            winnerId:null,
+            rotation:0
+        });
+    }
+    document.getElementById('winnerOverlay').style.display='none';
+}
+</script>
 
-        function getHoveredPlayer(rotationDeg) {
-            const n = players.length;
-            const segAngle = 360 / n;
-            // Pointer is at top (0°). Normalize rotation.
-            let normalized = rotationDeg % 360;
-            if (normalized < 0) normalized += 360;
-            // The segment at the top
-            const idx = Math.floor(normalized / segAngle) % n;
-            // Segments go clockwise from index 0, pointer at top means we read backwards
-            const hoveredIdx = (n - idx) % n;
-            return { player: players[hoveredIdx], index: hoveredIdx };
-        }
-
-        // ── Waiting Phase ──
-        function renderWaiting(state) {
-            document.body.classList.remove('flash-red', 'zoomed');
-            const holds = state.holds || {};
-
-            let statusHTML = '<div class="hold-status">';
-            players.forEach(p => {
-                const ready = holds[p.playerId] === true;
-                statusHTML += `
-                    <div class="hold-pip ${ready ? 'ready' : ''}">
-                        <img src="${p.avatarUrl}" draggable="false">
-                        <span>${p.name}</span>
-                    </div>`;
-            });
-            statusHTML += '</div>';
-
-            app.innerHTML = `
-                <div class="hover-name" id="hoverName"></div>
-                ${buildWheel(0, false, true)}
-                ${statusHTML}
-                <p class="hold-prompt" id="holdPrompt">Hold the wheel to spin</p>
-            `;
-
-            setupWheelHold();
-        }
-
-        function setupWheelHold() {
-            const wrapper = document.getElementById('wheelWrapper');
-            if (!wrapper) return;
-
-            const startHold = (e) => {
-                if (e.cancelable) e.preventDefault();
-                if (isHolding) return;
-                isHolding = true;
-                // Init audio context on first touch (mobile requirement)
-                if (!audioCtx) {
-                    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
-                }
-                database.ref('rooms/' + roomCode + '/rouletteState/holds/' + playerData.playerId).set(true);
-            };
-
-            const endHold = (e) => {
-                if (e && e.cancelable) e.preventDefault();
-                if (!isHolding) return;
-                isHolding = false;
-                database.ref('rooms/' + roomCode + '/rouletteState/holds/' + playerData.playerId).set(false);
-            };
-
-            wrapper.addEventListener('touchstart', startHold, { passive: false });
-            wrapper.addEventListener('touchend', endHold, { passive: false });
-            wrapper.addEventListener('touchcancel', endHold, { passive: false });
-            wrapper.addEventListener('mousedown', startHold);
-            wrapper.addEventListener('mouseup', endHold);
-            wrapper.addEventListener('mouseleave', endHold);
-
-            // Clean up old listener
-            if (holdListenerRef) holdListenerRef.off();
-
-            holdListenerRef = database.ref('rooms/' + roomCode + '/rouletteState/holds');
-            holdListenerRef.on('value', snap => {
-                const holds = snap.val() || {};
-                const allHolding = players.every(p => holds[p.playerId] === true);
-
-                // Update UI pips
-                document.querySelectorAll('.hold-pip').forEach((el, i) => {
-                    const p = players[i];
-                    if (p && holds[p.playerId]) el.classList.add('ready');
-                    else el.classList.remove('ready');
-                });
-
-                const ring = document.getElementById('holdRing');
-                const prompt = document.getElementById('holdPrompt');
-                if (ring) ring.classList.toggle('all-holding', allHolding);
-                if (prompt) {
-                    const holdCount = players.filter(p => holds[p.playerId] === true).length;
-                    if (allHolding) {
-                        prompt.textContent = 'Spinning...';
-                        prompt.classList.add('active');
-                    } else {
-                        prompt.textContent = `Hold the wheel (${holdCount}/${players.length})`;
-                        prompt.classList.remove('active');
-                    }
-                }
-
-                if (allHolding && isHost) {
-                    setTimeout(() => startSpin(), 600);
-                }
-            });
-        }
-
-        // ── Spin ──
-        async function startSpin() {
-            const winner = players[Math.floor(Math.random() * players.length)];
-            const winnerIndex = players.indexOf(winner);
-            const n = players.length;
-            const segAngle = 360 / n;
-            const baseSpins = 2160; // 6 full spins
-            const targetAngle = (winnerIndex * segAngle) + (segAngle / 2);
-            const finalRotation = baseSpins + targetAngle;
-
-            await database.ref('rooms/' + roomCode + '/rouletteState').update({
-                phase: 'spinning',
-                winnerId: winner.playerId,
-                rotation: finalRotation,
-                holds: {}
-            });
-
-            setTimeout(async () => {
-                await database.ref('rooms/' + roomCode + '/rouletteState').update({ phase: 'result' });
-            }, 5500);
-        }
-
-        // ── Spinning Phase ──
-        function renderSpinning(state) {
-            const hoverNameEl = document.getElementById('hoverName');
-            
-            // Only re-render if we haven't already set up spinning
-            if (!document.querySelector('.animate-spin')) {
-                app.innerHTML = `
-                    <div class="hover-name visible" id="hoverName"></div>
-                    ${buildWheel(state.rotation, true, false)}
-                `;
-            }
-
-            // Track rotation with requestAnimationFrame for hover name
-            const segEl = document.getElementById('wheelSegments');
-            if (!segEl) return;
-
-            let running = true;
-            const isWinner = state.winnerId === playerData.playerId;
-
-            function trackSpin() {
-                if (!running) return;
-                const st = window.getComputedStyle(segEl);
-                const tr = st.transform;
-                let angle = 0;
-                if (tr && tr !== 'none') {
-                    const vals = tr.split('(')[1]?.split(')')[0]?.split(',');
-                    if (vals && vals.length >= 2) {
-                        const a = parseFloat(vals[0]);
-                        const b = parseFloat(vals[1]);
-                        angle = Math.atan2(b, a) * (180 / Math.PI);
-                        if (angle < 0) angle += 360;
-                    }
-                }
-
-                const hovered = getHoveredPlayer(angle);
-                const nameEl = document.getElementById('hoverName');
-                if (nameEl && hovered.player) {
-                    nameEl.textContent = hovered.player.name;
-                    const itIsYou = hovered.player.playerId === playerData.playerId;
-                    nameEl.classList.toggle('is-you', itIsYou);
-                    document.body.classList.toggle('flash-red', itIsYou);
-                    document.body.classList.toggle('zoomed', itIsYou);
-
-                    // Tick on segment change
-                    if (hovered.index !== lastSegmentIndex) {
-                        lastSegmentIndex = hovered.index;
-                        playTick();
-                        const ptr = document.getElementById('pointer');
-                        if (ptr) {
-                            ptr.classList.add('tick');
-                            setTimeout(() => ptr.classList.remove('tick'), 60);
-                        }
-                    }
-                }
-
-                requestAnimationFrame(trackSpin);
-            }
-            requestAnimationFrame(trackSpin);
-
-            // Stop tracking after spin ends
-            setTimeout(() => { running = false; }, 5600);
-        }
-
-        // ── Result Phase ──
-        function renderResult(state) {
-            const winner = players.find(p => p.playerId === state.winnerId);
-            const isWinner = state.winnerId === playerData.playerId;
-
-            document.body.classList.toggle('flash-red', isWinner);
-            document.body.classList.toggle('zoomed', isWinner);
-
-            app.innerHTML = `
-                <div class="hover-name visible ${isWinner ? 'is-you' : ''}" id="hoverName">${isWinner ? 'YOU' : winner.name}</div>
-                ${buildWheel(state.rotation, false, false)}
-                <div class="result-section">
-                    <div class="winner-card">
-                        <img src="${winner.avatarUrl}" class="winner-avatar" draggable="false">
-                        <div class="winner-name">${winner.name}</div>
-                        <div class="winner-label">was selected</div>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-accent" onclick="spinAgain()">Spin Again</button>
-                        <button class="btn" onclick="backToLobby()">Lobby</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // ── Actions ──
-        async function spinAgain() {
-            document.body.classList.remove('flash-red', 'zoomed');
-            lastSegmentIndex = -1;
-            if (isHost) {
-                await database.ref('rooms/' + roomCode + '/rouletteState').update({
-                    phase: 'waiting',
-                    holds: {},
-                    winnerId: null,
-                    rotation: 0
-                });
-            }
-        }
-
-        async function backToLobby() {
-            if (isHost) {
-                await database.ref('rooms/' + roomCode).update({ state: 'lobby' });
-                await database.ref('rooms/' + roomCode + '/rouletteState').remove();
-            }
-            window.location.href = `lobby.html?room=${roomCode}`;
-        }
-
-        window.spinAgain = spinAgain;
-        window.backToLobby = backToLobby;
-    </script>
 </body>
 </html>
