@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="apple-touch-icon" href="favicon.ico">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-        <title>RODEO</title>
+    <title>RODEO</title>
     <style>
         * { 
             margin: 0; 
@@ -123,7 +119,7 @@
     </style>
 </head>
 <body>
-    <iframe id="app" src="index.html"></iframe>
+    <iframe id="app" src="index.html" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals" allow="storage-access *"></iframe>
     
     <div id="prompt">
         <div class="modal">
