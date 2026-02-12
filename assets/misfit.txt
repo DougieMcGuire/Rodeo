@@ -1,5 +1,3 @@
-# Misfit Words
-
 Apple
 Banana
 Ocean
