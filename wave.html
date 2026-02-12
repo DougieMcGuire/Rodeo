@@ -161,10 +161,11 @@ body::before {
 }
 
 .secret-number {
-    font-size: 5rem;
+    font-size: 8rem;
     font-weight: 900;
     color: #ff0000;
     margin: 30px 0;
+    line-height: 1;
 }
 
 .instruction-text {
@@ -378,7 +379,7 @@ body::before {
     }
 
     .secret-number {
-        font-size: 4rem;
+        font-size: 5rem;
     }
 
     .slider-value {
@@ -556,11 +557,11 @@ function renderGuessing(state) {
             <div class="slider-container">
                 <div class="tries-counter">${state.triesUsed}/7</div>
                 <div class="slider-controls">
-                    <button class="slider-btn" onclick="adjustGuess(-1)" ${state.currentGuess <= 1 || state.triesUsed >= 7 ? 'disabled' : ''}>
+                    <button class="slider-btn" onclick="adjustGuess(-1)" ${state.currentGuess <= 1 ? 'disabled' : ''}>
                         &lt;
                     </button>
                     <div class="slider-value">${state.currentGuess}</div>
-                    <button class="slider-btn" onclick="adjustGuess(1)" ${state.currentGuess >= 10 || state.triesUsed >= 7 ? 'disabled' : ''}>
+                    <button class="slider-btn" onclick="adjustGuess(1)" ${state.currentGuess >= 10 ? 'disabled' : ''}>
                         &gt;
                     </button>
                 </div>
@@ -568,6 +569,9 @@ function renderGuessing(state) {
                     <span>1 (Least)</span>
                     <span>10 (Most)</span>
                 </div>
+                <button class="btn btn-primary" onclick="submitGuess()" style="margin-top: 30px;" ${state.triesUsed >= 7 ? 'disabled' : ''}>
+                    Submit Guess
+                </button>
             </div>
         `;
     } else {
@@ -581,20 +585,20 @@ function renderGuessing(state) {
                 <div class="info-label">is blinded!</div>
             </div>
             
-            <div class="info-box" style="margin-top: 20px;">
-                <div class="info-label">Secret Number</div>
-                <div class="secret-number">${state.secretNumber}</div>
-                <div class="category-display">${state.category}</div>
-                <div class="instruction-text">
-                    Give ${blindedPlayer.name} answers out loud that match this number!<br>
-                    (1 = Least, 10 = Most)
+            <div class="info-box" style="margin-top: 20px; padding: 50px 30px;">
+                <div class="category-display" style="font-size: 2rem; margin-bottom: 20px;">${state.category}</div>
+                <div class="info-label" style="font-size: 1.5rem; margin-bottom: 20px;">SECRET NUMBER</div>
+                <div class="secret-number" style="font-size: 8rem; line-height: 1;">${state.secretNumber}</div>
+                <div class="instruction-text" style="margin-top: 30px; font-size: 1.2rem; font-weight: 800;">
+                    Give answers out loud that match this number!<br>
+                    <span style="color: #999; font-size: 1rem; font-weight: 600;">(1 = Least, 10 = Most)</span>
                 </div>
             </div>
             
-            <div class="info-box" style="margin-top: 20px;">
-                <div class="info-label">${blindedPlayer.name}'s Current Guess</div>
-                <div class="secret-number" style="font-size: 4rem;">${state.currentGuess}</div>
-                <div class="tries-counter">${state.triesUsed}/7 tries used</div>
+            <div class="info-box" style="margin-top: 20px; background: #f9f9f9;">
+                <div class="info-label">${blindedPlayer.name}'s Guess</div>
+                <div class="secret-number" style="font-size: 4rem; color: #666;">${state.currentGuess}</div>
+                <div class="tries-counter" style="font-size: 1rem;">${state.triesUsed}/7 guesses submitted</div>
             </div>
         `;
     }
@@ -613,8 +617,20 @@ async function adjustGuess(delta) {
     
     const newGuess = Math.max(1, Math.min(10, stateVal.currentGuess + delta));
     
+    // Only update the guess, don't increment tries
     await database.ref('rooms/' + roomCode + '/wavelengthState').update({
-        currentGuess: newGuess,
+        currentGuess: newGuess
+    });
+}
+
+async function submitGuess() {
+    const state = await database.ref('rooms/' + roomCode + '/wavelengthState').once('value');
+    const stateVal = state.val();
+    
+    if (stateVal.triesUsed >= 7) return;
+    
+    // Increment tries on submit
+    await database.ref('rooms/' + roomCode + '/wavelengthState').update({
         triesUsed: stateVal.triesUsed + 1
     });
 }
@@ -672,14 +688,17 @@ function renderResults(state) {
 }
 
 async function endGame() {
-    if (isHost) {
+    if (!isHost) return;
+    const confirmed = confirm('Are you sure you want to end the game and return home?');
+    if (confirmed) {
         await database.ref('rooms/' + roomCode).remove();
+        clearCurrentRoom();
+        window.location.href = 'index.html';
     }
-    clearCurrentRoom();
-    window.location.href = 'index.html';
 }
 
 window.adjustGuess = adjustGuess;
+window.submitGuess = submitGuess;
 window.endGame = endGame;
 </script>
 </body>
