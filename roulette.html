@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette - RODEO</title>
+    <link rel="icon" href="favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s ease;
+        }
+
+        body.selected {
+            background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 200vmax;
+            height: 200vmax;
+            transform: translate(-50%, -50%);
+            background: repeating-conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                transparent 2deg,
+                rgba(255, 255, 255, 0.05) 2deg,
+                rgba(255, 255, 255, 0.05) 4deg
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-screen {
+            background: white;
+            border-radius: 30px;
+            padding: 50px 40px;
+            box-shadow: 0 0 0 6px #000, 0 25px 80px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        body.selected .game-screen {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 8px #ff0000, 0 0 60px rgba(255, 0, 0, 0.8);
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            color: #000;
+            margin-bottom: 30px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .instruction {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 700;
+            max-width: 500px;
+        }
+
+        .roulette-wheel {
+            width: 100%;
+            max-width: 350px;
+            aspect-ratio: 1;
+            position: relative;
+            margin: 30px auto;
+            transition: transform 0.3s ease;
+        }
+
+        body.selected .roulette-wheel {
+            transform: scale(1.2);
+        }
+
+        .wheel-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #000;
+            box-shadow: 0 0 0 4px #FFD700, 0 10px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+
+        .wheel-segments {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+
+        .wheel-segments.spinning {
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+
+        .segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            left: 50%;
+            top: 50%;
+            transform-origin: 0 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding-left: 20px;
+        }
+
+        .segment::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            left: 0;
+            top: 0;
+            background: var(--segment-color);
+        }
+
+        .segment-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .segment-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+        }
+
+        .segment-name {
+            color: white;
+            font-weight: 900;
+            font-size: 0.9rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: #FFD700;
+            border-radius: 50%;
+            border: 6px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #FF3B30;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+            z-index: 11;
+        }
+
+        .hold-button {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            border: 6px solid #000;
+            border-radius: 20px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 8px 8px 0 #000;
+            margin: 20px auto;
+            transition: all 0.2s;
+            background: #FFD700;
+            color: #000;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .hold-button.holding {
+            background: #32CD32;
+            transform: scale(0.95);
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        .hold-button:active {
+            transform: scale(0.95);
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        .hold-status {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .player-hold-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.05);
+            border: 3px solid #000;
+            border-radius: 12px;
+        }
+
+        .player-hold-status.ready {
+            background: rgba(50, 205, 50, 0.2);
+            border-color: #32CD32;
+        }
+
+        .status-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #000;
+        }
+
+        .status-name {
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            font-size: 1.2rem;
+        }
+
+        .winner-announcement {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            padding: 40px;
+            border-radius: 20px;
+            border: 6px solid #000;
+            margin: 30px 0;
+            box-shadow: 10px 10px 0 #000;
+        }
+
+        .winner-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 6px solid #000;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .winner-name {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #000;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .winner-label {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #FF3B30;
+            text-transform: uppercase;
+        }
+
+        .btn {
+            padding: 25px 60px;
+            border: 5px solid #000;
+            border-radius: 15px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 8px 8px 0 #000;
+            margin: 10px;
+            transition: all 0.2s;
+            background: #FFD700;
+            color: #000;
+        }
+
+        .btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 12px 12px 0 #000;
+        }
+
+        .btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 8px solid rgba(255, 255, 255, 0.3);
+            border-top: 8px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .game-screen {
+                padding: 30px 20px;
+            }
+            .roulette-wheel {
+                max-width: 280px;
+            }
+            .segment-avatar {
+                width: 28px;
+                height: 28px;
+            }
+            .segment-name {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-screen">
+            <h1 class="game-title">🎰 ROULETTE</h1>
+            <div id="gameContent"></div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBaJXCqGmUaGumvcWNE7w4FOOzTJVDH-yg",
+            authDomain: "polorfriends.firebaseapp.com",
+            databaseURL: "https://polorfriends-default-rtdb.firebaseio.com",
+            projectId: "polorfriends",
+            storageBucket: "polorfriends.firebasestorage.app",
+            messagingSenderId: "328546525972",
+            appId: "1:328546525972:web:a6fe0f0a45b4565a7b1801",
+            measurementId: "G-07B4713DQQ"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Utils
+        function getPlayerData() {
+            const data = localStorage.getItem('playerData');
+            return data ? JSON.parse(data) : null;
+        }
+
+        function getCurrentRoom() {
+            return localStorage.getItem('currentRoom');
+        }
+
+        function clearCurrentRoom() {
+            localStorage.removeItem('currentRoom');
+        }
+
+        // Game State
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomCode = urlParams.get('room') || getCurrentRoom();
+        const playerData = getPlayerData();
+
+        if (!roomCode || !playerData) {
+            window.location.href = 'index.html';
+        }
+
+        const gameContent = document.getElementById('gameContent');
+        
+        let players = [];
+        let isHost = false;
+        let isHolding = false;
+
+        const colors = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#007AFF', '#5856D6', '#AF52DE', '#FF2D55'];
+
+        // Listen for room
+        database.ref('rooms/' + roomCode).once('value', (snapshot) => {
+            const room = snapshot.val();
+            if (!room) {
+                clearCurrentRoom();
+                window.location.href = 'index.html';
+                return;
+            }
+            isHost = (room.hostId === playerData.playerId);
+            
+            // Load players
+            database.ref('rooms/' + roomCode + '/players').once('value', (snapshot) => {
+                const playersData = snapshot.val();
+                if (!playersData) {
+                    clearCurrentRoom();
+                    window.location.href = 'index.html';
+                    return;
+                }
+                players = Object.values(playersData).sort((a, b) => a.joinOrder - b.joinOrder);
+                
+                // Initialize game if host
+                if (isHost) {
+                    initGame();
+                }
+                
+                // Attach listener
+                attachGameStateListener();
+            });
+        });
+
+        async function initGame() {
+            await database.ref('rooms/' + roomCode + '/rouletteState').set({
+                phase: 'waiting',
+                holds: {},
+                winnerId: null,
+                rotation: 0
+            });
+        }
+
+        function attachGameStateListener() {
+            database.ref('rooms/' + roomCode + '/rouletteState').on('value', (snapshot) => {
+                const state = snapshot.val();
+                if (!state) {
+                    showLoading();
+                } else {
+                    renderGameState(state);
+                }
+            });
+        }
+
+        function showLoading() {
+            gameContent.innerHTML = `
+                <div class="spinner"></div>
+                <p class="instruction">Loading roulette...</p>
+            `;
+        }
+
+        function renderGameState(state) {
+            if (state.phase === 'waiting') {
+                showWaiting(state);
+            } else if (state.phase === 'spinning') {
+                showSpinning(state);
+            } else if (state.phase === 'result') {
+                showResult(state);
+            }
+        }
+
+        function showWaiting(state) {
+            const holds = state.holds || {};
+            const allHolding = players.every(p => holds[p.playerId] === true);
+            
+            let statusHTML = '<div class="hold-status">';
+            players.forEach(p => {
+                const holding = holds[p.playerId] === true;
+                statusHTML += `
+                    <div class="player-hold-status ${holding ? 'ready' : ''}">
+                        <img src="${p.avatarUrl}" class="status-avatar">
+                        <span class="status-name">${p.name}</span>
+                        <span class="status-indicator">${holding ? '✓' : '⏳'}</span>
+                    </div>
+                `;
+            });
+            statusHTML += '</div>';
+            
+            gameContent.innerHTML = `
+                <p class="instruction">Everyone hold the button to spin!</p>
+                ${createWheel(0)}
+                ${statusHTML}
+                <button class="hold-button" id="holdBtn">HOLD TO SPIN</button>
+            `;
+            
+            setupHoldButton();
+        }
+
+        function setupHoldButton() {
+            const btn = document.getElementById('holdBtn');
+            
+            const startHold = () => {
+                if (isHolding) return;
+                isHolding = true;
+                btn.classList.add('holding');
+                btn.textContent = 'HOLDING...';
+                database.ref('rooms/' + roomCode + '/rouletteState/holds/' + playerData.playerId).set(true);
+            };
+            
+            const endHold = () => {
+                if (!isHolding) return;
+                isHolding = false;
+                btn.classList.remove('holding');
+                btn.textContent = 'HOLD TO SPIN';
+                database.ref('rooms/' + roomCode + '/rouletteState/holds/' + playerData.playerId).set(false);
+            };
+            
+            // Touch events
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startHold();
+            });
+            
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                endHold();
+            });
+            
+            // Mouse events for desktop
+            btn.addEventListener('mousedown', startHold);
+            btn.addEventListener('mouseup', endHold);
+            btn.addEventListener('mouseleave', endHold);
+            
+            // Check if everyone is holding
+            database.ref('rooms/' + roomCode + '/rouletteState/holds').on('value', (snapshot) => {
+                const holds = snapshot.val() || {};
+                const allHolding = players.every(p => holds[p.playerId] === true);
+                
+                if (allHolding && isHost) {
+                    // Start spinning!
+                    setTimeout(() => startSpin(), 500);
+                }
+            });
+        }
+
+        async function startSpin() {
+            // Pick random winner
+            const winner = players[Math.floor(Math.random() * players.length)];
+            const winnerIndex = players.findIndex(p => p.playerId === winner.playerId);
+            
+            // Calculate rotation
+            const segmentAngle = 360 / players.length;
+            const baseRotation = 1800; // 5 full spins
+            const targetAngle = (360 - (winnerIndex * segmentAngle)) - (segmentAngle / 2);
+            const finalRotation = baseRotation + targetAngle;
+            
+            await database.ref('rooms/' + roomCode + '/rouletteState').update({
+                phase: 'spinning',
+                winnerId: winner.playerId,
+                rotation: finalRotation,
+                holds: {}
+            });
+            
+            // After 4 seconds, show result
+            setTimeout(async () => {
+                await database.ref('rooms/' + roomCode + '/rouletteState').update({
+                    phase: 'result'
+                });
+            }, 4000);
+        }
+
+        function showSpinning(state) {
+            const isWinner = state.winnerId === playerData.playerId;
+            
+            if (isWinner) {
+                document.body.classList.add('selected');
+            }
+            
+            gameContent.innerHTML = `
+                <p class="instruction">Spinning...</p>
+                ${createWheel(state.rotation, true)}
+            `;
+        }
+
+        function showResult(state) {
+            const winner = players.find(p => p.playerId === state.winnerId);
+            const isWinner = state.winnerId === playerData.playerId;
+            
+            if (isWinner) {
+                document.body.classList.add('selected');
+            }
+            
+            gameContent.innerHTML = `
+                ${createWheel(state.rotation, false)}
+                <div class="winner-announcement">
+                    <img src="${winner.avatarUrl}" class="winner-avatar">
+                    <div class="winner-name">${winner.name}</div>
+                    <div class="winner-label">WAS SELECTED!</div>
+                </div>
+                <button class="btn" onclick="spinAgain()">SPIN AGAIN</button>
+                <button class="btn" onclick="backToLobby()">BACK TO LOBBY</button>
+            `;
+        }
+
+        function createWheel(rotation, spinning = false) {
+            const segmentAngle = 360 / players.length;
+            
+            let segmentsHTML = '';
+            players.forEach((player, index) => {
+                const angle = index * segmentAngle;
+                const color = colors[index % colors.length];
+                
+                segmentsHTML += `
+                    <div class="segment" style="
+                        transform: rotate(${angle}deg) skewY(${-90 + segmentAngle}deg);
+                        --segment-color: ${color};
+                    ">
+                        <div class="segment-content" style="transform: skewY(${90 - segmentAngle}deg) rotate(${segmentAngle / 2}deg);">
+                            <img src="${player.avatarUrl}" class="segment-avatar">
+                            <span class="segment-name">${player.name}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return `
+                <div class="roulette-wheel">
+                    <div class="wheel-pointer"></div>
+                    <div class="wheel-container">
+                        <div class="wheel-segments ${spinning ? 'spinning' : ''}" style="transform: rotate(${rotation}deg);">
+                            ${segmentsHTML}
+                        </div>
+                        <div class="wheel-center">🎰</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function spinAgain() {
+            document.body.classList.remove('selected');
+            
+            if (isHost) {
+                await database.ref('rooms/' + roomCode + '/rouletteState').update({
+                    phase: 'waiting',
+                    holds: {},
+                    winnerId: null,
+                    rotation: 0
+                });
+            }
+        }
+
+        async function backToLobby() {
+            if (isHost) {
+                await database.ref('rooms/' + roomCode).update({
+                    state: 'lobby'
+                });
+                await database.ref('rooms/' + roomCode + '/rouletteState').remove();
+            }
+            window.location.href = `lobby.html?room=${roomCode}`;
+        }
+        
+        window.spinAgain = spinAgain;
+        window.backToLobby = backToLobby;
+    </script>
+</body>
+</html>
