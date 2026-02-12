@@ -54,15 +54,14 @@ database.ref('rooms/' + roomCode).on('value', (snapshot) => {
         if (room.state === 'playing') {
             console.log('Game starting! Redirecting to game screen...');
             
-            // Redirect to specific game page based on game type
-            const gameUrls = {
-                'charades': 'charades.html',
-                'roulette': 'roulette.html',
-                'truth-or-dare': 'game.html',
-                'would-you-rather': 'game.html',
-                'wavelength': 'game.html',
-                'misfit': 'game.html'
-            };
+const gameUrls = {
+    'charades': 'charades.html',
+    'roulette': 'roulette.html',
+    'would-you-rather': 'wyr.html',  // ✅ CORRECT
+    'truth-or-dare': 'game.html',
+    'wavelength': 'game.html',
+    'misfit': 'game.html'
+};
             
             const gameUrl = gameUrls[room.gameType] || 'game.html';
             console.log(`Redirecting to ${gameUrl}...`);
