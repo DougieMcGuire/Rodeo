@@ -554,17 +554,24 @@ async function initGame() {
     const room = await database.ref('rooms/' + roomCode).once('value');
     currentMode = room.val().gameMode || 'friends';
     
-    await database.ref('rooms/' + roomCode + '/wyrState').set({
-        phase: 'voting',
-        round: 1,
-        mode: currentMode,
-        currentQuestion: null,
-        votes: {},
-        revealed: false
-    });
+    // Initialize game state
+    const stateRef = database.ref('rooms/' + roomCode + '/wyrState');
+    const existingState = await stateRef.once('value');
     
-    // Start first round
-    await startNewRound();
+    // Only initialize if state doesn't exist
+    if (!existingState.val()) {
+        await stateRef.set({
+            phase: 'voting',
+            round: 1,
+            mode: currentMode,
+            currentQuestion: null,
+            votes: {},
+            revealed: false
+        });
+        
+        // Start first round
+        await startNewRound();
+    }
 }
 
 function attachGameStateListener() {
@@ -646,8 +653,9 @@ function renderVoting(state) {
         return;
     }
     
-    const myVote = state.votes[playerData.playerId];
-    const totalVotes = Object.keys(state.votes).length;
+    const votes = state.votes || {};
+    const myVote = votes[playerData.playerId];
+    const totalVotes = Object.keys(votes).length;
     
     app.innerHTML = `
         <div class="game-title">Would You Rather</div>
@@ -674,7 +682,7 @@ function renderVoting(state) {
     `;
     
     if (myVote) {
-        updateVotersList(state.votes);
+        updateVotersList(votes);
     }
     
     // Check if everyone voted
