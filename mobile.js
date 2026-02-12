@@ -16,26 +16,23 @@
     console.log('Is mobile:', isMobile);
     console.log('Is standalone:', isStandalone);
     console.log('Current path:', window.location.pathname);
+    console.log('Current href:', window.location.href);
 
     // ALWAYS optimize for mobile (browser or standalone)
     if (isMobile) {
         optimizeForMobile();
     }
 
-    // Show install prompt on home screen only if not standalone
-    // Check if on index page (could be /, /index.html, or /Rodeo/index.html etc)
-    const isIndexPage = window.location.pathname === '/' || 
-                       window.location.pathname.includes('index.html') ||
-                       window.location.pathname.endsWith('/');
-    
-    if (isMobile && !isStandalone && isIndexPage) {
-        console.log('Showing install prompt...');
-        // Only show on index.html (home screen)
+    // TEMPORARILY: Always show on mobile if not standalone (for debugging)
+    if (isMobile && !isStandalone) {
+        console.log('SHOWING INSTALL PROMPT NOW');
         setTimeout(() => {
             showInstallPrompt();
-        }, 500); // Small delay so page loads first
+        }, 500);
     } else {
-        console.log('Not showing prompt - mobile:', isMobile, 'standalone:', isStandalone, 'isIndex:', isIndexPage);
+        console.log('NOT SHOWING PROMPT:');
+        console.log('- isMobile:', isMobile);
+        console.log('- isStandalone:', isStandalone);
     }
 
     // Extra optimizations for standalone mode
@@ -44,6 +41,8 @@
     }
 
     function showInstallPrompt() {
+        console.log('Creating install prompt...');
+        
         const overlay = document.createElement('div');
         overlay.id = 'pwa-install-overlay';
         overlay.innerHTML = `
@@ -52,12 +51,17 @@
                 <h3 class="install-title">Install the app for better experience!</h3>
                 <p class="install-subtitle">(no download required)</p>
                 <div class="gif-container">
-                    <img src="assets/632FA4E9-04F8-470A-9538-E400B1F45AB1.gif" alt="Installation tutorial" class="tutorial-gif">
+                    <img src="assets/632FA4E9-04F8-470A-9538-E400B1F45AB1.gif" 
+                         alt="Installation tutorial" 
+                         class="tutorial-gif"
+                         onerror="console.error('GIF failed to load'); this.style.display='none';"
+                         onload="console.log('GIF loaded successfully');">
                 </div>
             </div>
         `;
         
         document.body.appendChild(overlay);
+        console.log('Overlay added to body');
         
         // Add styles
         const style = document.createElement('style');
@@ -125,13 +129,6 @@
                 width: 100%;
                 height: auto;
                 display: block;
-                animation: slowLoop 10s linear infinite;
-            }
-
-            @keyframes slowLoop {
-                0% { opacity: 1; }
-                98% { opacity: 1; }
-                100% { opacity: 0.8; }
             }
 
             .dismiss-btn {
@@ -174,8 +171,11 @@
 
         // Expose dismiss function globally
         window.dismissInstallPrompt = function() {
+            console.log('Dismissing prompt');
             overlay.remove();
         };
+        
+        console.log('Install prompt created successfully');
     }
 
     function optimizeForMobile() {
