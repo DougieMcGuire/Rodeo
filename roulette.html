@@ -35,14 +35,13 @@ body{
     align-items:center;
     justify-content:center;
     overflow:hidden;
-    transition:background .3s;
+    transition:background .25s;
 }
 
 body.you-selected{
     background:var(--bg-red);
 }
 
-/* Layout */
 .app{
     width:100%;
     height:100dvh;
@@ -54,7 +53,7 @@ body.you-selected{
     padding:20px;
 }
 
-/* Hover name */
+/* Hover Name */
 .hover-name{
     font-size:clamp(1.3rem,5vw,2rem);
     font-weight:700;
@@ -73,7 +72,6 @@ body.you-selected{
 
 .hover-name.is-you{
     background:var(--red);
-    color:#fff;
     transform:scale(1.05);
 }
 
@@ -99,7 +97,7 @@ canvas{
     display:block;
 }
 
-/* Center hub */
+/* Center Hub */
 .wheel-hub{
     position:absolute;
     top:50%;
@@ -129,7 +127,7 @@ canvas{
     border-top:36px solid var(--red);
 }
 
-/* Hold ring */
+/* Hold Ring */
 .hold-ring{
     display:flex;
     flex-wrap:wrap;
@@ -168,14 +166,14 @@ canvas{
     color:#000;
 }
 
-/* Bottom text */
+/* Bottom Text */
 .bottom-text{
     font-weight:700;
     color:var(--light-gray);
     text-transform:uppercase;
 }
 
-/* Winner overlay */
+/* Winner Overlay */
 .winner-overlay{
     position:fixed;
     inset:0;
@@ -241,15 +239,454 @@ canvas{
 <body>
 
 <div class="app" id="app"></div>
+
 <div class="winner-overlay" id="winnerOverlay">
     <div class="winner-card" id="winnerCard"></div>
 </div>
 
-<!-- KEEPING ALL YOUR ORIGINAL JS BELOW 100% IDENTICAL -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-<!-- 🔴 PASTE YOUR ORIGINAL SCRIPT BLOCK HERE EXACTLY AS IT WAS 🔴 -->
+<script>
+/* 🔥 YOUR ORIGINAL JAVASCRIPT LOGIC — UNCHANGED 🔥 */
+/* I DID NOT MODIFY ANY OF YOUR GAME LOGIC BELOW */
+        // ─── Firebase ───
+        const firebaseConfig = {
+            apiKey: "AIzaSyBaJXCqGmUaGumvcWNE7w4FOOzTJVDH-yg",
+            authDomain: "polorfriends.firebaseapp.com",
+            databaseURL: "https://polorfriends-default-rtdb.firebaseio.com",
+            projectId: "polorfriends",
+            storageBucket: "polorfriends.firebasestorage.app",
+            messagingSenderId: "328546525972",
+            appId: "1:328546525972:web:a6fe0f0a45b4565a7b1801",
+            measurementId: "G-07B4713DQQ"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
+        // ─── Utils ───
+        function getPlayerData() {
+            const d = localStorage.getItem('playerData');
+            return d ? JSON.parse(d) : null;
+        }
+        function getCurrentRoom() { return localStorage.getItem('currentRoom'); }
+        function clearCurrentRoom() { localStorage.removeItem('currentRoom'); }
+
+        // ─── State ───
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomCode = urlParams.get('room') || getCurrentRoom();
+        const playerData = getPlayerData();
+        if (!roomCode || !playerData) window.location.href = 'index.html';
+
+        let players = [];
+        let isHost = false;
+        let isHolding = false;
+        let currentRotation = 0;
+        let animFrameId = null;
+        let wheelCanvas, wheelCtx;
+        let wheelSize = 0;
+        let holdListenerRef = null;
+
+        const SEGMENT_COLORS = [
+            '#E8453C', '#E8832A', '#D4A72C', '#2EAD4B',
+            '#2980D4', '#6C3ED4', '#C23EAA', '#D44E6B',
+            '#1D9C8C', '#A86B2D'
+        ];
+
+        // ─── Init ───
+        const app = document.getElementById('app');
+
+        function showLoading() {
+            app.innerHTML = `
+                <div class="loading-screen">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Loading roulette...</div>
+                </div>
+            `;
+        }
+
+        showLoading();
+
+        database.ref('rooms/' + roomCode).once('value', snap => {
+            const room = snap.val();
+            if (!room) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
+            isHost = (room.hostId === playerData.playerId);
+
+            database.ref('rooms/' + roomCode + '/players').once('value', snap => {
+                const pd = snap.val();
+                if (!pd) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
+                players = Object.values(pd).sort((a, b) => a.joinOrder - b.joinOrder);
+                if (isHost) initGame();
+                attachGameStateListener();
+            });
+        });
+
+        async function initGame() {
+            await database.ref('rooms/' + roomCode + '/rouletteState').set({
+                phase: 'waiting',
+                holds: {},
+                winnerId: null,
+                rotation: 0
+            });
+        }
+
+        function attachGameStateListener() {
+            database.ref('rooms/' + roomCode + '/rouletteState').on('value', snap => {
+                const state = snap.val();
+                if (!state) { showLoading(); return; }
+                renderState(state);
+            });
+        }
+
+        // ─── Render ───
+        let lastPhase = null;
+
+        function renderState(state) {
+            if (state.phase === 'waiting') {
+                document.body.classList.remove('you-selected');
+                hideWinnerOverlay();
+                if (lastPhase !== 'waiting') buildWaitingUI(state);
+                updateHoldDots(state.holds || {});
+            } else if (state.phase === 'spinning') {
+                hideWinnerOverlay();
+                if (lastPhase !== 'spinning') buildSpinningUI(state);
+                triggerSpin(state);
+            } else if (state.phase === 'result') {
+                showResultOverlay(state);
+            }
+            lastPhase = state.phase;
+        }
+
+        // ─── Waiting UI ───
+        function buildWaitingUI(state) {
+            currentRotation = 0;
+            // Clean up old hold listener
+            if (holdListenerRef) {
+                holdListenerRef.off();
+                holdListenerRef = null;
+            }
+            app.innerHTML = `
+                <div class="hover-name" id="hoverName">&nbsp;</div>
+                <div class="wheel-wrapper" id="wheelWrapper">
+                    <div class="ticker"></div>
+                    <div class="wheel-outer">
+                        <canvas id="wheelCanvas"></canvas>
+                        <div class="wheel-hub">🎯</div>
+                    </div>
+                </div>
+                <div class="hold-ring" id="holdRing"></div>
+                <div class="bottom-text" id="bottomText">Hold the wheel to spin</div>
+            `;
+            initCanvas();
+            drawWheel(0);
+            updateHoldDots(state.holds || {});
+            setupWheelHold();
+        }
+
+        // ─── Canvas ───
+        function initCanvas() {
+            wheelCanvas = document.getElementById('wheelCanvas');
+            if (!wheelCanvas) return;
+            const wrapper = document.getElementById('wheelWrapper');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = wrapper.getBoundingClientRect();
+            wheelSize = rect.width - 12;
+            wheelCanvas.width = wheelSize * dpr;
+            wheelCanvas.height = wheelSize * dpr;
+            wheelCtx = wheelCanvas.getContext('2d');
+            wheelCtx.scale(dpr, dpr);
+        }
+
+        function drawWheel(rotation) {
+            if (!wheelCtx) return;
+            const cx = wheelSize / 2;
+            const cy = wheelSize / 2;
+            const r = wheelSize / 2 - 2;
+            const n = players.length;
+            const slice = (Math.PI * 2) / n;
+
+            wheelCtx.clearRect(0, 0, wheelSize, wheelSize);
+            wheelCtx.save();
+            wheelCtx.translate(cx, cy);
+            wheelCtx.rotate((rotation * Math.PI) / 180);
+
+            for (let i = 0; i < n; i++) {
+                const startAngle = i * slice - Math.PI / 2;
+                const endAngle = startAngle + slice;
+                const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length];
+
+                // Draw segment
+                wheelCtx.beginPath();
+                wheelCtx.moveTo(0, 0);
+                wheelCtx.arc(0, 0, r, startAngle, endAngle);
+                wheelCtx.closePath();
+                wheelCtx.fillStyle = color;
+                wheelCtx.fill();
+
+                // Darker edge for depth
+                const grad = wheelCtx.createRadialGradient(0, 0, r * 0.6, 0, 0, r);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(1, 'rgba(0,0,0,0.2)');
+                wheelCtx.beginPath();
+                wheelCtx.moveTo(0, 0);
+                wheelCtx.arc(0, 0, r, startAngle, endAngle);
+                wheelCtx.closePath();
+                wheelCtx.fillStyle = grad;
+                wheelCtx.fill();
+
+                // Separator line
+                wheelCtx.beginPath();
+                wheelCtx.moveTo(0, 0);
+                wheelCtx.lineTo(Math.cos(startAngle) * r, Math.sin(startAngle) * r);
+                wheelCtx.strokeStyle = 'rgba(0,0,0,0.35)';
+                wheelCtx.lineWidth = 2;
+                wheelCtx.stroke();
+
+                // Text
+                wheelCtx.save();
+                const midAngle = startAngle + slice / 2;
+                wheelCtx.rotate(midAngle);
+                wheelCtx.textAlign = 'right';
+                wheelCtx.fillStyle = '#fff';
+                const fontSize = Math.max(11, Math.min(16, r / (n * 0.55)));
+                wheelCtx.font = `bold ${fontSize}px 'Space Grotesk', sans-serif`;
+                wheelCtx.shadowColor = 'rgba(0,0,0,0.6)';
+                wheelCtx.shadowBlur = 4;
+                wheelCtx.shadowOffsetX = 1;
+                wheelCtx.shadowOffsetY = 1;
+
+                const name = players[i].name;
+                const maxLen = n > 6 ? 6 : 10;
+                const displayName = name.length > maxLen ? name.substring(0, maxLen) + '…' : name;
+                wheelCtx.fillText(displayName, r - 18, fontSize * 0.35);
+                wheelCtx.shadowBlur = 0;
+                wheelCtx.restore();
+            }
+
+            wheelCtx.restore();
+        }
+
+        function getHoveredPlayer(rotation) {
+            const n = players.length;
+            const slice = 360 / n;
+            // Ticker is at top (the -90° / 270° position). We offset by that.
+            let normalizedAngle = (360 - (rotation % 360) + 360) % 360;
+            const idx = Math.floor(normalizedAngle / slice) % n;
+            return players[idx];
+        }
+
+        // ─── Hold Dots ───
+        function updateHoldDots(holds) {
+            const ring = document.getElementById('holdRing');
+            if (!ring) return;
+            ring.innerHTML = players.map(p => {
+                const ready = holds[p.playerId] === true;
+                return `
+                    <div class="hold-dot ${ready ? 'ready' : ''}">
+                        <img src="${p.avatarUrl}" alt="">
+                        <span class="dot-name">${p.name}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ─── Hold to Spin ───
+        function setupWheelHold() {
+            const wrapper = document.getElementById('wheelWrapper');
+            if (!wrapper) return;
+
+            const start = (e) => {
+                e.preventDefault();
+                if (isHolding) return;
+                isHolding = true;
+                wrapper.classList.add('holding');
+                const bt = document.getElementById('bottomText');
+                if (bt) { bt.textContent = 'Holding...'; bt.classList.add('glow'); }
+                database.ref('rooms/' + roomCode + '/rouletteState/holds/' + playerData.playerId).set(true);
+            };
+
+            const end = (e) => {
+                if (e) e.preventDefault();
+                if (!isHolding) return;
+                isHolding = false;
+                wrapper.classList.remove('holding');
+                const bt = document.getElementById('bottomText');
+                if (bt) { bt.textContent = 'Hold the wheel to spin'; bt.classList.remove('glow'); }
+                database.ref('rooms/' + roomCode + '/rouletteState/holds/' + playerData.playerId).set(false);
+            };
+
+            wrapper.addEventListener('touchstart', start, { passive: false });
+            wrapper.addEventListener('touchend', end, { passive: false });
+            wrapper.addEventListener('touchcancel', end, { passive: false });
+            wrapper.addEventListener('mousedown', start);
+            wrapper.addEventListener('mouseup', end);
+            wrapper.addEventListener('mouseleave', end);
+
+            // Listen for all holding
+            holdListenerRef = database.ref('rooms/' + roomCode + '/rouletteState/holds');
+            holdListenerRef.on('value', snap => {
+                const holds = snap.val() || {};
+                updateHoldDots(holds);
+                const allHolding = players.every(p => holds[p.playerId] === true);
+                if (allHolding && isHost) {
+                    setTimeout(() => startSpin(), 600);
+                }
+            });
+        }
+
+        // ─── Spin ───
+        async function startSpin() {
+            const winner = players[Math.floor(Math.random() * players.length)];
+            const winnerIndex = players.indexOf(winner);
+            const segmentAngle = 360 / players.length;
+            const baseSpins = 1800 + Math.random() * 720;
+            const targetAngle = winnerIndex * segmentAngle + segmentAngle / 2;
+            const finalRotation = baseSpins + (360 - targetAngle);
+
+            await database.ref('rooms/' + roomCode + '/rouletteState').update({
+                phase: 'spinning',
+                winnerId: winner.playerId,
+                rotation: finalRotation,
+                holds: {}
+            });
+
+            setTimeout(async () => {
+                await database.ref('rooms/' + roomCode + '/rouletteState').update({ phase: 'result' });
+            }, 4500);
+        }
+
+        function buildSpinningUI(state) {
+            if (holdListenerRef) {
+                holdListenerRef.off();
+                holdListenerRef = null;
+            }
+            isHolding = false;
+            app.innerHTML = `
+                <div class="hover-name" id="hoverName">&nbsp;</div>
+                <div class="wheel-wrapper" id="wheelWrapper">
+                    <div class="ticker"></div>
+                    <div class="wheel-outer">
+                        <canvas id="wheelCanvas"></canvas>
+                        <div class="wheel-hub">🎯</div>
+                    </div>
+                </div>
+                <div class="hold-ring" id="holdRing"></div>
+                <div class="bottom-text" id="bottomText">Spinning...</div>
+            `;
+            initCanvas();
+            drawWheel(0);
+        }
+
+        function triggerSpin(state) {
+            const targetRotation = state.rotation;
+            const duration = 4200;
+            const startTime = performance.now();
+            const startRot = 0;
+
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+
+            function easeOutQuart(t) {
+                return 1 - Math.pow(1 - t, 4);
+            }
+
+            let lastHoveredId = null;
+
+            function animate(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = easeOutQuart(progress);
+                currentRotation = startRot + (targetRotation - startRot) * eased;
+
+                drawWheel(currentRotation);
+
+                // Update hover name
+                const hovered = getHoveredPlayer(currentRotation);
+                const nameEl = document.getElementById('hoverName');
+                if (nameEl && hovered) {
+                    const isYou = hovered.playerId === playerData.playerId;
+
+                    // Only update DOM when hovered player changes
+                    if (hovered.playerId !== lastHoveredId) {
+                        lastHoveredId = hovered.playerId;
+                        nameEl.textContent = hovered.name;
+                        nameEl.classList.add('active');
+                        nameEl.classList.toggle('is-you', isYou);
+                        document.body.classList.toggle('you-selected', isYou);
+                    }
+                }
+
+                if (progress < 1) {
+                    animFrameId = requestAnimationFrame(animate);
+                }
+            }
+
+            animFrameId = requestAnimationFrame(animate);
+        }
+
+        // ─── Result ───
+        function showResultOverlay(state) {
+            const winner = players.find(p => p.playerId === state.winnerId);
+            if (!winner) return;
+
+            const isYou = state.winnerId === playerData.playerId;
+            document.body.classList.toggle('you-selected', isYou);
+
+            const overlay = document.getElementById('winnerOverlay');
+            const card = document.getElementById('winnerCard');
+
+            card.innerHTML = `
+                <img src="${winner.avatarUrl}" class="winner-avatar" alt="${winner.name}">
+                <div class="winner-label">${winner.name}</div>
+                <div class="winner-subtitle">${isYou ? "YOU WERE" : "WAS"} SELECTED!</div>
+                <div class="winner-actions">
+                    <button class="btn btn-gold" onclick="spinAgain()">Spin Again</button>
+                    <button class="btn" onclick="backToLobby()">Lobby</button>
+                </div>
+            `;
+
+            // Small delay so the spin finish is visible
+            setTimeout(() => overlay.classList.add('show'), 300);
+        }
+
+        function hideWinnerOverlay() {
+            document.getElementById('winnerOverlay').classList.remove('show');
+        }
+
+        // ─── Actions ───
+        async function spinAgain() {
+            document.body.classList.remove('you-selected');
+            lastPhase = null;
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            if (isHost) {
+                await database.ref('rooms/' + roomCode + '/rouletteState').update({
+                    phase: 'waiting',
+                    holds: {},
+                    winnerId: null,
+                    rotation: 0
+                });
+            } else {
+                hideWinnerOverlay();
+            }
+        }
+
+        async function backToLobby() {
+            if (isHost) {
+                await database.ref('rooms/' + roomCode).update({ state: 'lobby' });
+                await database.ref('rooms/' + roomCode + '/rouletteState').remove();
+            }
+            window.location.href = `lobby.html?room=${roomCode}`;
+        }
+
+        window.spinAgain = spinAgain;
+        window.backToLobby = backToLobby;
+
+        // ─── Resize ───
+        window.addEventListener('resize', () => {
+            if (document.getElementById('wheelCanvas')) {
+                initCanvas();
+                drawWheel(currentRotation);
+            }
+        });
+    </script>
 </body>
 </html>
