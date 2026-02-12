@@ -282,10 +282,11 @@
     </div>
 
     <!-- Mobile optimizations -->
-<script src="mobile.js"></script>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <script>
         // Firebase Config
         const firebaseConfig = {
@@ -529,19 +530,37 @@
             
             turns[currentPlayerId] = (turns[currentPlayerId] || 0) + 1;
             
+            console.log('Turn counts after increment:', turns);
+            
             // Check if everyone has had 3 turns
             const allPlayersHave3Turns = players.every(p => (turns[p.playerId] || 0) >= 3);
             
             if (allPlayersHave3Turns) {
                 // Game over
+                console.log('Everyone has 3 turns, game over!');
                 await database.ref('rooms/' + roomCode + '/charadesState').update({
                     phase: 'gameover',
                     turns: turns
                 });
             } else {
-                // Pick next player who hasn't had 3 turns yet
-                const availablePlayers = players.filter(p => (turns[p.playerId] || 0) < 3);
-                const nextPlayer = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
+                // Pick next player who hasn't had 3 turns yet AND is not the current player
+                const availablePlayers = players.filter(p => 
+                    (turns[p.playerId] || 0) < 3 && 
+                    p.playerId !== currentPlayerId  // Don't pick the same player again
+                );
+                
+                console.log('Available players for next turn:', availablePlayers.map(p => p.name));
+                
+                // If no one else available (everyone else has 3 turns), then current player can go again
+                let nextPlayer;
+                if (availablePlayers.length === 0) {
+                    console.log('Only current player left, they go again');
+                    nextPlayer = players.find(p => p.playerId === currentPlayerId);
+                } else {
+                    nextPlayer = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
+                }
+                
+                console.log('Next player:', nextPlayer.name);
                 
                 await database.ref('rooms/' + roomCode + '/charadesState').update({
                     phase: 'countdown',
