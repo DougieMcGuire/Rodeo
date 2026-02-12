@@ -836,6 +836,14 @@ function renderWheel(state) {
     
     initCanvas();
     drawWheel(0);
+    
+    // Listen for spin state changes
+    database.ref('rooms/' + roomCode + '/todState/spinning').on('value', snap => {
+        const spinData = snap.val();
+        if (spinData && spinData.isSpinning) {
+            triggerSpinAnimation(spinData.finalRotation);
+        }
+    });
 }
 
 function initCanvas() {
@@ -934,9 +942,19 @@ async function spinWheel() {
     const targetAngle = winnerIndex * segmentAngle + segmentAngle / 2;
     const finalRotation = baseSpins + (360 - targetAngle);
     
-    // Start spinning animation
+    // Set spinning state in Firebase so all players see the animation
+    await database.ref('rooms/' + roomCode + '/todState/spinning').set({
+        isSpinning: true,
+        finalRotation: finalRotation,
+        winnerId: winner.playerId
+    });
+}
+
+function triggerSpinAnimation(finalRotation) {
     const startTime = performance.now();
     const duration = 4200;
+    
+    if (animFrameId) cancelAnimationFrame(animFrameId);
     
     function animate(now) {
         const elapsed = now - startTime;
@@ -949,13 +967,21 @@ async function spinWheel() {
         if (progress < 1) {
             animFrameId = requestAnimationFrame(animate);
         } else {
-            // Spin complete - move to selection phase
-            setTimeout(() => {
-                database.ref('rooms/' + roomCode + '/todState').update({
-                    phase: 'selection',
-                    currentPlayer: winner.playerId
-                });
-            }, 500);
+            // Spin complete - only host moves to selection phase
+            if (isHost) {
+                setTimeout(async () => {
+                    const spinData = await database.ref('rooms/' + roomCode + '/todState/spinning').once('value');
+                    const winnerId = spinData.val().winnerId;
+                    
+                    await database.ref('rooms/' + roomCode + '/todState').update({
+                        phase: 'selection',
+                        currentPlayer: winnerId
+                    });
+                    
+                    // Clear spinning state
+                    await database.ref('rooms/' + roomCode + '/todState/spinning').remove();
+                }, 500);
+            }
         }
     }
     
