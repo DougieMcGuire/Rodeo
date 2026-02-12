@@ -55,12 +55,18 @@ database.ref('rooms/' + roomCode).on('value', (snapshot) => {
             console.log('Game starting! Redirecting to game screen...');
             
             // Redirect to specific game page based on game type
-            if (room.gameType === 'charades') {
-                console.log('Redirecting to charades...');
-                window.location.href = `charades.html?room=${roomCode}`;
-            } else {
-                window.location.href = `game.html?room=${roomCode}`;
-            }
+            const gameUrls = {
+                'charades': 'charades.html',
+                'roulette': 'roulette.html',
+                'truth-or-dare': 'game.html',
+                'would-you-rather': 'game.html',
+                'wavelength': 'game.html',
+                'misfit': 'game.html'
+            };
+            
+            const gameUrl = gameUrls[room.gameType] || 'game.html';
+            console.log(`Redirecting to ${gameUrl}...`);
+            window.location.href = `${gameUrl}?room=${roomCode}`;
             return;
         }
         
@@ -158,7 +164,7 @@ startGameBtn.addEventListener('click', async () => {
             state: 'playing'
         });
         
-        window.location.href = `game.html?room=${roomCode}`;
+        // Note: The redirect happens in the room listener above when state changes to 'playing'
     } catch (error) {
         console.error('Error starting game:', error);
         alert('Failed to start game');
