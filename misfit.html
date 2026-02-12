@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Misfit - RODEO</title>
+<link rel="icon" href="favicon.ico">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: radial-gradient(circle at center, #ff0000 0%, #8b0000 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-x: hidden;
+}
+
+/* Animated radial lines effect */
+body::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 200vmax;
+    height: 200vmax;
+    transform: translate(-50%, -50%);
+    background: repeating-conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent 2deg,
+        rgba(0, 0, 0, 0.15) 2deg,
+        rgba(0, 0, 0, 0.15) 4deg
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+.app {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Loading */
+.loading-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.spinner-container {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 8px solid rgba(255, 255, 255, 0.3);
+    border-top: 8px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.spinner-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 0 #000;
+}
+
+/* Game Title */
+.game-title {
+    font-size: 2.5rem;
+    color: white;
+    text-shadow: 4px 4px 0 #000;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+/* Word Display */
+.word-box {
+    background: white;
+    padding: 40px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.word-label {
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.word-label.misfit {
+    color: #ff0000;
+}
+
+.word-text {
+    font-size: 3rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #000;
+    letter-spacing: 2px;
+}
+
+.misfit-alert {
+    background: #ff0000;
+    color: white;
+    padding: 15px;
+    border: 4px solid #000;
+    border-radius: 12px;
+    margin-top: 20px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+/* Current Player Display */
+.current-player-box {
+    background: white;
+    padding: 30px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 100%;
+}
+
+.player-avatar-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 5px solid #000;
+    object-fit: cover;
+    margin-bottom: 20px;
+}
+
+.current-player-name {
+    font-size: 2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.turn-instruction {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.round-counter {
+    font-size: 0.9rem;
+    color: #999;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Voting */
+.voting-box {
+    background: white;
+    padding: 30px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    width: 100%;
+}
+
+.voting-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.vote-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.vote-option {
+    background: white;
+    padding: 20px;
+    border: 4px solid #000;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 0 #000;
+}
+
+.vote-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #000;
+}
+
+.vote-option:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #000;
+}
+
+.vote-option.selected {
+    background: #FFD700;
+    transform: scale(1.02);
+}
+
+.vote-option.evidence {
+    background: linear-gradient(180deg, #90EE90 0%, #7FD87F 100%);
+    font-weight: 900;
+}
+
+.vote-option img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid #000;
+    object-fit: cover;
+}
+
+.vote-option-name {
+    flex: 1;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.vote-count {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ff0000;
+}
+
+/* Reveal Screen */
+.reveal-screen {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+.reveal-box {
+    background: white;
+    padding: 40px;
+    border: 5px solid #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 100%;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.reveal-label {
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.reveal-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 5px solid #000;
+    object-fit: cover;
+    margin-bottom: 20px;
+}
+
+.reveal-name {
+    font-size: 2.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.reveal-result {
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    padding: 15px 30px;
+    border-radius: 12px;
+    border: 4px solid #000;
+    display: inline-block;
+    margin-top: 15px;
+}
+
+.reveal-result.innocent {
+    background: #90EE90;
+    color: #000;
+}
+
+.reveal-result.guilty {
+    background: #ff0000;
+    color: white;
+}
+
+.actual-misfit-box {
+    background: #ff0000;
+    animation: fadeIn 0.5s ease-in;
+}
+
+.actual-misfit-box .reveal-label,
+.actual-misfit-box .reveal-name {
+    color: white;
+}
+
+.word-reveal {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Buttons */
+.btn {
+    padding: 20px 40px;
+    border: 5px solid #000;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 6px 0 #000, 0 6px 15px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 200, 200, 0.95) 100%);
+    width: 100%;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 #000, 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 4px 0 #000, 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary {
+    background: linear-gradient(180deg, rgba(255, 182, 193, 0.95) 0%, rgba(255, 105, 180, 0.95) 100%);
+}
+
+.btn-danger {
+    background: linear-gradient(180deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+/* Host Controls */
+.host-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.host-controls .btn {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    width: auto;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .game-title {
+        font-size: 2rem;
+    }
+
+    .word-text {
+        font-size: 2rem;
+    }
+
+    .current-player-name {
+        font-size: 1.5rem;
+    }
+
+    .reveal-name {
+        font-size: 2rem;
+    }
+
+    .host-controls {
+        bottom: 10px;
+        right: 10px;
+    }
+}
+
+.hidden {
+    display: none !important;
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+
+<div class="host-controls hidden" id="hostControls">
+    <button class="btn btn-danger" onclick="endGame()">End Game</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+// ─── Firebase ───
+const firebaseConfig = {
+    apiKey: "AIzaSyBaJXCqGmUaGumvcWNE7w4FOOzTJVDH-yg",
+    authDomain: "polorfriends.firebaseapp.com",
+    databaseURL: "https://polorfriends-default-rtdb.firebaseio.com",
+    projectId: "polorfriends",
+    storageBucket: "polorfriends.firebasestorage.app",
+    messagingSenderId: "328546525972",
+    appId: "1:328546525972:web:a6fe0f0a45b4565a7b1801",
+    measurementId: "G-07B4713DQQ"
+};
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ─── Words List ───
+const WORDS = [
+    "PIZZA", "BURGER", "TACO", "SUSHI",
+    "COFFEE", "TEA", "BEER", "WINE",
+    "DOG", "CAT", "BIRD", "FISH",
+    "BEACH", "MOUNTAIN", "FOREST", "DESERT",
+    "CAR", "BIKE", "TRAIN", "PLANE",
+    "PHONE", "LAPTOP", "TV", "CAMERA",
+    "BOOK", "MOVIE", "SONG", "GAME",
+    "APPLE", "BANANA", "ORANGE", "GRAPE",
+    "SHIRT", "PANTS", "SHOES", "HAT",
+    "SUMMER", "WINTER", "SPRING", "FALL"
+];
+
+// ─── Utils ───
+function getPlayerData() {
+    const d = localStorage.getItem('playerData');
+    return d ? JSON.parse(d) : null;
+}
+function getCurrentRoom() { return localStorage.getItem('currentRoom'); }
+function clearCurrentRoom() { localStorage.removeItem('currentRoom'); }
+
+// ─── State ───
+const urlParams = new URLSearchParams(window.location.search);
+const roomCode = urlParams.get('room') || getCurrentRoom();
+const playerData = getPlayerData();
+if (!roomCode || !playerData) window.location.href = 'index.html';
+
+let players = [];
+let isHost = false;
+
+const app = document.getElementById('app');
+
+function showLoading() {
+    app.innerHTML = `
+        <div class="loading-screen">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <img src="assets/favicon.png" class="spinner-icon" alt="">
+            </div>
+            <div class="loading-text">Loading game...</div>
+        </div>
+    `;
+}
+
+showLoading();
+
+// ─── Initialize ───
+database.ref('rooms/' + roomCode).once('value', snap => {
+    const room = snap.val();
+    if (!room) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
+    isHost = (room.hostId === playerData.playerId);
+
+    if (isHost) {
+        document.getElementById('hostControls').classList.remove('hidden');
+    }
+
+    database.ref('rooms/' + roomCode + '/players').once('value', snap => {
+        const pd = snap.val();
+        if (!pd) { clearCurrentRoom(); window.location.href = 'index.html'; return; }
+        players = Object.values(pd).sort((a, b) => a.joinOrder - b.joinOrder);
+        
+        if (isHost) initGame();
+        attachGameStateListener();
+    });
+});
+
+async function initGame() {
+    const stateRef = database.ref('rooms/' + roomCode + '/misfitState');
+    const existingState = await stateRef.once('value');
+    
+    if (!existingState.val()) {
+        // Pick two random words
+        const word1 = WORDS[Math.floor(Math.random() * WORDS.length)];
+        let word2 = WORDS[Math.floor(Math.random() * WORDS.length)];
+        while (word2 === word1) {
+            word2 = WORDS[Math.floor(Math.random() * WORDS.length)];
+        }
+        
+        // Pick random misfit
+        const misfitIndex = Math.floor(Math.random() * players.length);
+        const misfitId = players[misfitIndex].playerId;
+        
+        // Assign words
+        const playerWords = {};
+        players.forEach(p => {
+            playerWords[p.playerId] = p.playerId === misfitId ? word2 : word1;
+        });
+        
+        await stateRef.set({
+            phase: 'viewing',
+            round: 1,
+            currentPlayerIndex: 0,
+            misfitId: misfitId,
+            normalWord: word1,
+            misfitWord: word2,
+            playerWords: playerWords,
+            votes: {}
+        });
+    }
+}
+
+function attachGameStateListener() {
+    database.ref('rooms/' + roomCode + '/misfitState').on('value', snap => {
+        const state = snap.val();
+        if (!state) { showLoading(); return; }
+        renderState(state);
+    });
+}
+
+// ─── Rendering ───
+function renderState(state) {
+    if (state.phase === 'viewing') {
+        renderViewing(state);
+    } else if (state.phase === 'describing') {
+        renderDescribing(state);
+    } else if (state.phase === 'voting') {
+        renderVoting(state);
+    } else if (state.phase === 'reveal') {
+        renderReveal(state);
+    }
+}
+
+// ─── VIEWING PHASE ───
+function renderViewing(state) {
+    const myWord = state.playerWords[playerData.playerId];
+    const isMisfit = state.misfitId === playerData.playerId;
+    
+    app.innerHTML = `
+        <div class="game-title">Misfit</div>
+        
+        <div class="word-box">
+            <div class="word-label ${isMisfit ? 'misfit' : ''}">
+                ${isMisfit ? 'YOUR WORD (You are the Misfit!)' : 'YOUR WORD'}
+            </div>
+            <div class="word-text">${myWord}</div>
+            ${isMisfit ? `
+                <div class="misfit-alert">
+                    🕵️ You're the Misfit! Everyone else has a different word.
+                </div>
+            ` : ''}
+        </div>
+        
+        ${isHost ? `
+            <button class="btn btn-primary" onclick="startDescribing()">Start Game</button>
+        ` : `
+            <div class="loading-text" style="font-size: 1.2rem;">Waiting for host to start...</div>
+        `}
+    `;
+}
+
+async function startDescribing() {
+    if (!isHost) return;
+    await database.ref('rooms/' + roomCode + '/misfitState').update({
+        phase: 'describing',
+        currentPlayerIndex: 0
+    });
+}
+
+// ─── DESCRIBING PHASE ───
+function renderDescribing(state) {
+    const currentPlayer = players[state.currentPlayerIndex];
+    const isMyTurn = currentPlayer.playerId === playerData.playerId;
+    
+    app.innerHTML = `
+        <div class="game-title">Misfit</div>
+        
+        <div class="current-player-box">
+            <img src="${currentPlayer.avatarUrl}" class="player-avatar-large" alt="${currentPlayer.name}">
+            <div class="current-player-name">${currentPlayer.name}</div>
+            <div class="turn-instruction">
+                ${isMyTurn ? 'Say ONE WORD that describes your word!' : 'Waiting for their description...'}
+            </div>
+            <div class="round-counter">Round ${state.round} • Player ${state.currentPlayerIndex + 1}/${players.length}</div>
+        </div>
+        
+        ${isHost ? `
+            <button class="btn btn-primary" onclick="nextPlayer()">Next Player</button>
+        ` : ''}
+    `;
+}
+
+async function nextPlayer() {
+    if (!isHost) return;
+    
+    const state = await database.ref('rooms/' + roomCode + '/misfitState').once('value');
+    const stateVal = state.val();
+    
+    const nextIndex = stateVal.currentPlayerIndex + 1;
+    
+    if (nextIndex >= players.length) {
+        // Round complete - go to voting
+        await database.ref('rooms/' + roomCode + '/misfitState').update({
+            phase: 'voting',
+            votes: {}
+        });
+    } else {
+        // Next player
+        await database.ref('rooms/' + roomCode + '/misfitState').update({
+            currentPlayerIndex: nextIndex
+        });
+    }
+}
+
+// ─── VOTING PHASE ───
+function renderVoting(state) {
+    const votes = state.votes || {};
+    const myVote = votes[playerData.playerId];
+    const hasVoted = myVote !== undefined;
+    
+    // Count votes
+    const voteCounts = {};
+    voteCounts['evidence'] = 0;
+    players.forEach(p => voteCounts[p.playerId] = 0);
+    
+    Object.values(votes).forEach(vote => {
+        voteCounts[vote] = (voteCounts[vote] || 0) + 1;
+    });
+    
+    if (hasVoted) {
+        // Show waiting screen with vote counts
+        app.innerHTML = `
+            <div class="game-title">Misfit</div>
+            
+            <div class="voting-box">
+                <div class="voting-title">Waiting for votes...</div>
+                <div class="vote-options">
+                    <div class="vote-option evidence">
+                        <div class="vote-option-name">Need More Evidence</div>
+                        <div class="vote-count">${voteCounts['evidence']}</div>
+                    </div>
+                    ${players.map(p => `
+                        <div class="vote-option">
+                            <img src="${p.avatarUrl}" alt="">
+                            <div class="vote-option-name">${p.name}</div>
+                            <div class="vote-count">${voteCounts[p.playerId]}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } else {
+        // Show voting options
+        app.innerHTML = `
+            <div class="game-title">Misfit</div>
+            
+            <div class="voting-box">
+                <div class="voting-title">Who is the Misfit?</div>
+                <div class="vote-options">
+                    <div class="vote-option evidence" onclick="vote('evidence')">
+                        <div class="vote-option-name">Need More Evidence</div>
+                    </div>
+                    ${players.map(p => `
+                        <div class="vote-option" onclick="vote('${p.playerId}')">
+                            <img src="${p.avatarUrl}" alt="">
+                            <div class="vote-option-name">${p.name}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Check if everyone voted
+    if (isHost && Object.keys(votes).length === players.length) {
+        setTimeout(() => processVotes(), 2000);
+    }
+}
+
+async function vote(target) {
+    await database.ref('rooms/' + roomCode + '/misfitState/votes/' + playerData.playerId).set(target);
+}
+
+async function processVotes() {
+    if (!isHost) return;
+    
+    const state = await database.ref('rooms/' + roomCode + '/misfitState').once('value');
+    const stateVal = state.val();
+    const votes = stateVal.votes || {};
+    
+    // Count votes
+    const voteCounts = {};
+    voteCounts['evidence'] = 0;
+    players.forEach(p => voteCounts[p.playerId] = 0);
+    
+    Object.values(votes).forEach(vote => {
+        voteCounts[vote] = (voteCounts[vote] || 0) + 1;
+    });
+    
+    // Find winner
+    let maxVotes = 0;
+    let winner = null;
+    
+    for (const [target, count] of Object.entries(voteCounts)) {
+        if (count > maxVotes) {
+            maxVotes = count;
+            winner = target;
+        }
+    }
+    
+    if (winner === 'evidence') {
+        // Another round
+        await database.ref('rooms/' + roomCode + '/misfitState').update({
+            phase: 'describing',
+            currentPlayerIndex: 0,
+            round: stateVal.round + 1,
+            votes: {}
+        });
+    } else {
+        // Reveal
+        await database.ref('rooms/' + roomCode + '/misfitState').update({
+            phase: 'reveal',
+            votedPlayer: winner
+        });
+    }
+}
+
+// ─── REVEAL PHASE ───
+function renderReveal(state) {
+    const votedPlayer = players.find(p => p.playerId === state.votedPlayer);
+    const misfitPlayer = players.find(p => p.playerId === state.misfitId);
+    const wasCorrect = state.votedPlayer === state.misfitId;
+    
+    app.innerHTML = `
+        <div class="game-title">Misfit</div>
+        
+        <div class="reveal-screen">
+            <div class="reveal-box">
+                <div class="reveal-label">You Voted For...</div>
+                <img src="${votedPlayer.avatarUrl}" class="reveal-avatar" alt="${votedPlayer.name}">
+                <div class="reveal-name">${votedPlayer.name}</div>
+                <div class="reveal-result ${wasCorrect ? 'guilty' : 'innocent'}">
+                    ${wasCorrect ? '✓ MISFIT!' : '✗ INNOCENT'}
+                </div>
+            </div>
+            
+            <div class="reveal-box actual-misfit-box">
+                <div class="reveal-label">The Actual Misfit Was...</div>
+                <img src="${misfitPlayer.avatarUrl}" class="reveal-avatar" alt="${misfitPlayer.name}">
+                <div class="reveal-name">${misfitPlayer.name}</div>
+                <div class="word-reveal">
+                    Everyone had: ${state.normalWord}<br>
+                    ${misfitPlayer.name} had: ${state.misfitWord}
+                </div>
+            </div>
+            
+            <div class="button-group">
+                ${isHost ? `
+                    <button class="btn btn-primary" onclick="playAgain()">Play Again</button>
+                ` : ''}
+                <button class="btn" onclick="endGame()">End Game</button>
+            </div>
+        </div>
+    `;
+}
+
+async function playAgain() {
+    if (!isHost) return;
+    
+    // Pick two new random words
+    const word1 = WORDS[Math.floor(Math.random() * WORDS.length)];
+    let word2 = WORDS[Math.floor(Math.random() * WORDS.length)];
+    while (word2 === word1) {
+        word2 = WORDS[Math.floor(Math.random() * WORDS.length)];
+    }
+    
+    // Pick new random misfit
+    const misfitIndex = Math.floor(Math.random() * players.length);
+    const misfitId = players[misfitIndex].playerId;
+    
+    // Assign words
+    const playerWords = {};
+    players.forEach(p => {
+        playerWords[p.playerId] = p.playerId === misfitId ? word2 : word1;
+    });
+    
+    await database.ref('rooms/' + roomCode + '/misfitState').update({
+        phase: 'viewing',
+        round: 1,
+        currentPlayerIndex: 0,
+        misfitId: misfitId,
+        normalWord: word1,
+        misfitWord: word2,
+        playerWords: playerWords,
+        votes: {},
+        votedPlayer: null
+    });
+}
+
+async function endGame() {
+    if (isHost) {
+        await database.ref('rooms/' + roomCode).remove();
+    }
+    clearCurrentRoom();
+    window.location.href = 'index.html';
+}
+
+window.startDescribing = startDescribing;
+window.nextPlayer = nextPlayer;
+window.vote = vote;
+window.playAgain = playAgain;
+window.endGame = endGame;
+</script>
+</body>
+</html>
