@@ -1,12 +1,6 @@
-// Game selection screen
 const playerData = getPlayerData();
-
-// Better validation
-if (!playerData || !playerData.name || !playerData.playerId) {
-    console.error('Missing player data:', playerData);
-    alert('Player data not loaded. Please try again.');
+if (!playerData || !playerData.name) {
     window.location.href = 'index.html';
-    throw new Error('Player data incomplete'); // Stop execution
 }
 
 let selectedMode = 'friends';
