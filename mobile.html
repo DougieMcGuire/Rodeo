@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#ff0000">
+    <meta name="theme-color" content="#000000">
     <title>RODEO</title>
     <style>
         * { 
@@ -15,20 +15,14 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        html { 
-            width: 100%; 
-            height: 100%; 
-            background: #ff0000;
-            overscroll-behavior: none;
-        }
-        
-        body { 
+        html, body { 
             width: 100%; 
             height: 100%; 
             overflow: hidden; 
-            background: #ff0000;
+            background: transparent;
             position: fixed;
             overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
         }
         
         #app { 
@@ -39,9 +33,11 @@
             height: 100vh;
             height: -webkit-fill-available;
             border: none; 
-            background: #ff0000;
+            background: transparent;
+            z-index: 1;
         }
         
+        /* Popup overlay */
         #prompt { 
             display: none; 
             position: fixed; 
@@ -49,109 +45,212 @@
             left: 0; 
             width: 100%; 
             height: 100%;
-            background: rgba(0,0,0,0.85); 
+            height: -webkit-fill-available;
+            background: rgba(0,0,0,0.9); 
             z-index: 999999;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         #prompt.show { display: flex; }
         
         .modal { 
             background: #fff; 
-            border-radius: 20px; 
-            padding: 30px 20px; 
-            max-width: 400px;
+            border-radius: 24px; 
+            padding: 32px 24px; 
+            max-width: 380px;
             width: 100%;
             text-align: center;
             position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes slideUp {
+            from { 
+                transform: translateY(50px) scale(0.95);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
         }
         
         .close { 
             position: absolute; 
-            top: 10px; 
-            right: 15px; 
-            font-size: 2rem; 
+            top: 12px; 
+            right: 12px; 
+            font-size: 28px; 
             border: none; 
-            background: none; 
-            color: #999; 
+            background: #f0f0f0; 
+            color: #666; 
             cursor: pointer;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-weight: 300;
+            line-height: 1;
         }
         
-        .logo { font-size: 3rem; margin-bottom: 15px; }
+        .close:active {
+            background: #e0e0e0;
+            transform: scale(0.95);
+        }
+        
+        .logo { 
+            font-size: 64px; 
+            margin-bottom: 16px;
+            animation: bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+        }
+        
+        @keyframes bounce {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
         
         h1 { 
-            font-size: 1.8rem; 
+            font-size: 28px; 
             font-weight: 900;
-            margin-bottom: 10px; 
+            margin-bottom: 8px;
+            color: #000;
+            letter-spacing: -0.5px;
         }
         
         .subtitle { 
             color: #666; 
-            margin-bottom: 25px;
-            font-size: 1rem;
+            margin-bottom: 24px;
+            font-size: 15px;
+            line-height: 1.4;
         }
         
         .gif {
             width: 100%;
-            max-width: 300px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            border: 3px solid #000;
+            max-width: 280px;
+            border-radius: 16px;
+            margin: 0 auto 20px;
+            border: 2px solid #e0e0e0;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
         .note {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 15px;
+            font-size: 14px;
+            color: #888;
+            margin-top: 16px;
+            line-height: 1.5;
+            background: #f8f8f8;
+            padding: 12px 16px;
+            border-radius: 12px;
+        }
+        
+        .note strong {
+            color: #000;
+            font-weight: 600;
+        }
+        
+        /* Safe area padding for notched devices */
+        @supports (padding: max(0px)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
         }
     </style>
 </head>
 <body>
-    <iframe id="app" src="index.html"></iframe>
+    <iframe id="app" src="index.html" allowtransparency="true"></iframe>
     
     <div id="prompt">
         <div class="modal">
-            <button class="close" onclick="hide()">×</button>
+            <button class="close" onclick="hidePrompt()">×</button>
             <div class="logo">🤠</div>
             <h1>Install RODEO</h1>
             <p class="subtitle">Add to your home screen for the best experience</p>
-            <img src="https://github.com/DougieMcGuire/Rodeo/blob/49dff7cb68b6f895c6f663ef862ce0ab947648d7/assets/632FA4E9-04F8-470A-9538-E400B1F45AB1.gif" alt="Install guide" class="gif">
-            <p class="note">Tap the share button ⬆️ then "Add to Home Screen"</p>
+            <img src="https://github.com/DougieMcGuire/Rodeo/raw/49dff7cb68b6f895c6f663ef862ce0ab947648d7/assets/632FA4E9-04F8-470A-9538-E400B1F45AB1.gif" alt="Install guide" class="gif">
+            <p class="note"><strong>Tap</strong> the share button <strong>⬆️</strong><br>then <strong>"Add to Home Screen"</strong></p>
         </div>
     </div>
 
     <script>
-        const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+        // Check if running in standalone mode
+        const isStandalone = window.navigator.standalone || 
+                            window.matchMedia('(display-mode: standalone)').matches;
+        
+        // Check if in iframe (Claude editor, etc.)
         const isInIframe = window.self !== window.top;
-        const hasSeenPrompt = localStorage.getItem('rodeo-prompt-seen');
         
-        // Show prompt ONCE if NOT standalone and NOT in iframe and NOT seen before
-        if (!isStandalone && !isInIframe && !hasSeenPrompt) {
-            setTimeout(() => {
-                document.getElementById('prompt').classList.add('show');
-                localStorage.setItem('rodeo-prompt-seen', 'true');
-            }, 800);
+        // Check if user has seen prompt before
+        const hasSeenPrompt = localStorage.getItem('rodeo-install-prompt-seen');
+        
+        // Show prompt ONCE if conditions are met
+        function showInstallPrompt() {
+            if (!isStandalone && !isInIframe && !hasSeenPrompt) {
+                setTimeout(() => {
+                    const prompt = document.getElementById('prompt');
+                    if (prompt) {
+                        prompt.classList.add('show');
+                        localStorage.setItem('rodeo-install-prompt-seen', 'true');
+                    }
+                }, 1000);
+            }
         }
         
-        function hide() {
-            document.getElementById('prompt').classList.remove('show');
+        // Hide prompt function
+        function hidePrompt() {
+            const prompt = document.getElementById('prompt');
+            if (prompt) {
+                prompt.classList.remove('show');
+            }
         }
         
-        // Close on outside tap
-        document.getElementById('prompt').onclick = function(e) {
-            if (e.target === this) hide();
-        };
+        // Close on backdrop click
+        document.getElementById('prompt').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hidePrompt();
+            }
+        });
         
-        // Prevent bounce/overscroll
+        // Prevent iOS bounce/overscroll
+        let preventScroll = false;
+        
+        document.addEventListener('touchstart', function(e) {
+            if (e.target.closest('#prompt')) return;
+            preventScroll = true;
+        });
+        
         document.addEventListener('touchmove', function(e) {
-            if (e.target === document.body || e.target === document.documentElement) {
+            if (preventScroll && (e.target === document.body || e.target === document.documentElement)) {
                 e.preventDefault();
             }
         }, { passive: false });
+        
+        document.addEventListener('touchend', function() {
+            preventScroll = false;
+        });
+        
+        // Initialize
+        showInstallPrompt();
+        
+        // Message from iframe to refresh if needed
+        window.addEventListener('message', function(e) {
+            if (e.data === 'reload') {
+                location.reload();
+            }
+        });
     </script>
 </body>
 </html>
