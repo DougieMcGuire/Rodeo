@@ -474,18 +474,58 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// ─── Words List ───
-const WORDS = [
-    "PIZZA", "BURGER", "TACO", "SUSHI",
-    "COFFEE", "TEA", "BEER", "WINE",
-    "DOG", "CAT", "BIRD", "FISH",
-    "BEACH", "MOUNTAIN", "FOREST", "DESERT",
-    "CAR", "BIKE", "TRAIN", "PLANE",
-    "PHONE", "LAPTOP", "TV", "CAMERA",
-    "BOOK", "MOVIE", "SONG", "GAME",
-    "APPLE", "BANANA", "ORANGE", "GRAPE",
-    "SHIRT", "PANTS", "SHOES", "HAT",
-    "SUMMER", "WINTER", "SPRING", "FALL"
+// ─── Words List (pairs of similar words) ───
+const WORD_PAIRS = [
+    ["PIZZA", "PASTA"],
+    ["BURGER", "HOTDOG"],
+    ["COFFEE", "TEA"],
+    ["BEER", "WINE"],
+    ["DOG", "CAT"],
+    ["LION", "TIGER"],
+    ["BEACH", "POOL"],
+    ["MOUNTAIN", "HILL"],
+    ["CAR", "BIKE"],
+    ["TRAIN", "BUS"],
+    ["PLANE", "HELICOPTER"],
+    ["PHONE", "TABLET"],
+    ["LAPTOP", "COMPUTER"],
+    ["TV", "MONITOR"],
+    ["BOOK", "MAGAZINE"],
+    ["MOVIE", "SHOW"],
+    ["GUITAR", "PIANO"],
+    ["DRUMS", "BASS"],
+    ["APPLE", "PEAR"],
+    ["BANANA", "PLANTAIN"],
+    ["ORANGE", "TANGERINE"],
+    ["GRAPE", "BERRY"],
+    ["SHIRT", "JACKET"],
+    ["PANTS", "SHORTS"],
+    ["SHOES", "BOOTS"],
+    ["HAT", "CAP"],
+    ["SUMMER", "SPRING"],
+    ["WINTER", "FALL"],
+    ["OCEAN", "SEA"],
+    ["LAKE", "RIVER"],
+    ["FOREST", "JUNGLE"],
+    ["DESERT", "BEACH"],
+    ["CITY", "TOWN"],
+    ["HOUSE", "APARTMENT"],
+    ["CHAIR", "COUCH"],
+    ["TABLE", "DESK"],
+    ["KNIFE", "FORK"],
+    ["SPOON", "LADLE"],
+    ["CUP", "MUG"],
+    ["BOWL", "PLATE"],
+    ["DOCTOR", "NURSE"],
+    ["TEACHER", "PROFESSOR"],
+    ["CHEF", "COOK"],
+    ["ARTIST", "PAINTER"],
+    ["SINGER", "RAPPER"],
+    ["ACTOR", "COMEDIAN"],
+    ["FOOTBALL", "SOCCER"],
+    ["BASKETBALL", "VOLLEYBALL"],
+    ["TENNIS", "BADMINTON"],
+    ["HOCKEY", "LACROSSE"]
 ];
 
 // ─── Utils ───
@@ -546,12 +586,9 @@ async function initGame() {
     const existingState = await stateRef.once('value');
     
     if (!existingState.val()) {
-        // Pick two random words
-        const word1 = WORDS[Math.floor(Math.random() * WORDS.length)];
-        let word2 = WORDS[Math.floor(Math.random() * WORDS.length)];
-        while (word2 === word1) {
-            word2 = WORDS[Math.floor(Math.random() * WORDS.length)];
-        }
+        // Pick random word pair
+        const pairIndex = Math.floor(Math.random() * WORD_PAIRS.length);
+        const [word1, word2] = WORD_PAIRS[pairIndex];
         
         // Pick random misfit
         const misfitIndex = Math.floor(Math.random() * players.length);
@@ -600,21 +637,13 @@ function renderState(state) {
 // ─── VIEWING PHASE ───
 function renderViewing(state) {
     const myWord = state.playerWords[playerData.playerId];
-    const isMisfit = state.misfitId === playerData.playerId;
     
     app.innerHTML = `
         <div class="game-title">Misfit</div>
         
         <div class="word-box">
-            <div class="word-label ${isMisfit ? 'misfit' : ''}">
-                ${isMisfit ? 'YOUR WORD (You are the Misfit!)' : 'YOUR WORD'}
-            </div>
+            <div class="word-label">YOUR WORD</div>
             <div class="word-text">${myWord}</div>
-            ${isMisfit ? `
-                <div class="misfit-alert">
-                    🕵️ You're the Misfit! Everyone else has a different word.
-                </div>
-            ` : ''}
         </div>
         
         ${isHost ? `
@@ -833,12 +862,9 @@ function renderReveal(state) {
 async function playAgain() {
     if (!isHost) return;
     
-    // Pick two new random words
-    const word1 = WORDS[Math.floor(Math.random() * WORDS.length)];
-    let word2 = WORDS[Math.floor(Math.random() * WORDS.length)];
-    while (word2 === word1) {
-        word2 = WORDS[Math.floor(Math.random() * WORDS.length)];
-    }
+    // Pick random word pair
+    const pairIndex = Math.floor(Math.random() * WORD_PAIRS.length);
+    const [word1, word2] = WORD_PAIRS[pairIndex];
     
     // Pick new random misfit
     const misfitIndex = Math.floor(Math.random() * players.length);
