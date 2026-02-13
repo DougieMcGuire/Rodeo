@@ -13,12 +13,10 @@ body {
   overflow: hidden;
   background: #0a1628;
   font-family: 'Fredoka', sans-serif;
-  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  position: fixed;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
 }
 
 canvas {
@@ -27,6 +25,8 @@ canvas {
   top: 0; left: 0;
   width: 100vw;
   height: 100vh;
+  z-index: 1;
+  touch-action: manipulation;
 }
 
 /* HUD */
@@ -74,8 +74,9 @@ canvas {
 
 .bear-btn {
   bottom: 20px; left: 20px;
-  pointer-events: all;
+  pointer-events: auto !important;
   cursor: pointer;
+  z-index: 50;
 }
 .bear-btn button {
   background: rgba(255,255,255,0.15);
@@ -101,7 +102,7 @@ canvas {
 /* OVERLAYS */
 .overlay {
   position: fixed; inset: 0;
-  z-index: 100;
+  z-index: 1000;
   display: flex; align-items: center; justify-content: center;
   background: rgba(10,22,40,0.85);
   backdrop-filter: blur(8px);
@@ -109,7 +110,7 @@ canvas {
   pointer-events: none;
   transition: opacity 0.4s;
 }
-.overlay.active { opacity: 1; pointer-events: all; }
+.overlay.active { opacity: 1; pointer-events: auto !important; }
 
 .panel {
   background: linear-gradient(145deg, #1a2d4a, #0f1f38);
@@ -122,6 +123,8 @@ canvas {
   transform: scale(0.9);
   transition: transform 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49);
   box-shadow: 0 25px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+  pointer-events: auto;
+  position: relative;
 }
 .overlay.active .panel { transform: scale(1); }
 
@@ -184,6 +187,9 @@ canvas {
   cursor: pointer;
   transition: all 0.2s;
   margin: 6px;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1001;
 }
 .btn:active { transform: scale(0.95); }
 .btn-primary {
@@ -215,6 +221,7 @@ canvas {
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  pointer-events: auto;
 }
 .bear-card:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
 .bear-card.selected { border-color: #FFD700; background: rgba(255,215,0,0.1); box-shadow: 0 0 20px rgba(255,215,0,0.15); }
@@ -234,7 +241,7 @@ canvas {
   top: -100px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 200;
+  z-index: 2000;
   background: linear-gradient(135deg, #1a2d4a, #0f1f38);
   border: 2px solid #FFD700;
   border-radius: 18px;
@@ -258,7 +265,7 @@ canvas {
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
+  z-index: 5;
   color: rgba(255,255,255,0.5);
   font-size: 14px;
   letter-spacing: 2px;
@@ -1128,13 +1135,17 @@ function render() {
 
 // ---- INPUT ----
 function handleTap(e) {
+  // Don't handle taps when any overlay is open
   if (!gameRunning) return;
+  if (document.querySelector('.overlay.active')) return;
   e.preventDefault();
   document.getElementById('tapHint').style.display = 'none';
   placeBlock();
 }
 
 canvas.addEventListener('pointerdown', handleTap);
+canvas.addEventListener('click', handleTap);
+canvas.addEventListener('touchstart', handleTap, { passive: false });
 document.addEventListener('keydown', e => {
   if (e.code === 'Space' || e.key === ' ') {
     e.preventDefault();
@@ -1143,7 +1154,8 @@ document.addEventListener('keydown', e => {
 });
 
 // ---- BUTTONS ----
-document.getElementById('startBtn').addEventListener('click', () => {
+document.getElementById('startBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
   document.getElementById('startOverlay').classList.remove('active');
   gameRunning = true;
   gameStarted = true;
@@ -1151,27 +1163,39 @@ document.getElementById('startBtn').addEventListener('click', () => {
   initGame();
 });
 
-document.getElementById('retryBtn').addEventListener('click', () => {
+document.getElementById('retryBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
   document.getElementById('gameOverOverlay').classList.remove('active');
   gameRunning = true;
   document.getElementById('tapHint').style.display = 'block';
   initGame();
 });
 
-document.getElementById('bearBtn').addEventListener('click', () => {
+document.getElementById('bearBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
   openBearSelector();
 });
-document.getElementById('startBearBtn').addEventListener('click', () => {
+document.getElementById('startBearBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
   openBearSelector();
 });
-document.getElementById('overBearBtn').addEventListener('click', () => {
+document.getElementById('overBearBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
   openBearSelector();
 });
-document.getElementById('bearCloseBtn').addEventListener('click', () => {
+document.getElementById('bearCloseBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
   document.getElementById('bearOverlay').classList.remove('active');
 });
 
 // ---- BOOT ----
+// Prevent overlays from passing clicks to canvas
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('pointerdown', e => e.stopPropagation());
+  ov.addEventListener('click', e => e.stopPropagation());
+  ov.addEventListener('touchstart', e => e.stopPropagation());
+});
+
 loadStorage();
 initStars();
 initGame();
